@@ -1,7 +1,6 @@
 import csv
 from dateutil import parser
 from ttp import ttp
-from fuzzywuzzy import fuzz
 
 class Tweet():
     def __init__(self):
