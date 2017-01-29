@@ -34,7 +34,8 @@ class GoldenGlobes():
         return ml_host
 
     def find_awards(self):
-        pass
+        winners=[]
+        return winners
 
 
 
