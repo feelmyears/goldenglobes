@@ -40,9 +40,9 @@ class GoldenGlobes():
                     for h in matches:
                         award_counter[h]+=1
             if (award_counter.most_common(1)!=None):
-                if(award_counter.most_common(1)[0]!=None):
+                if(len(award_counter.most_common(1))>0):
                     if(award_counter.most_common(1)[0][0]!=None):
-                        winners.append((award,award_counter.most_common(1)[0][0]))
+                        winners.append((award,award_counter.most_common(1)[0][0][0]))
         return winners
 
 
