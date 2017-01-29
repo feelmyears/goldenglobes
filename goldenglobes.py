@@ -33,6 +33,7 @@ class GoldenGlobes():
         ml_host = host_counts.most_common(1)[0][0]
         return ml_host
 
+
     def find_awards_fuzzy_wuzzy(self):
         winners=[]
         award_hash={}
@@ -49,13 +50,14 @@ class GoldenGlobes():
 
 
 
+
 # Initializing Tweet Database
+print "db startup"
 tweet_data = 'goldenglobes.tab' if USE_FULL_SET else 'goldenglobes_mod.tab'
-print "get db"
 tweets = TweetDB()
-print "import"
+print "import tweets"
 tweets.import_tweets(tweet_data)
-print "process"
+print "processing tweets"
 tweets.process_tweets()
 
 # Getting Awards
@@ -64,8 +66,11 @@ awards = MOTION_PICTURE_AWARDS + TELEVISION_AWARDS
 # Creating GoldenGlobes app
 gg = GoldenGlobes(awards, tweets)
 extractor = ConllExtractor()
-gg.find_awards_fuzzy_wuzzy()
+for t in gg.tweetDB.tweets:
+    blob = TextBlob(t.text, np_extractor=extractor)
+    print blob.noun_phrases
+
 # print "finding host"
 # print gg.find_host()
-# for winner in gg.find_awards():
+# for winner in gg.find_awards_fuzzy_wuzzy():
 #     print winner
