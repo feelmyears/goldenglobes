@@ -40,7 +40,7 @@ class GoldenGlobes():
                     for h in matches:
                         award_counter[h]+=1
             if (award_counter.most_common(1)!=None):
-                winners.append((award,award_counter.most_common(1)))
+                winners.append((award,award_counter.most_common(1)[0][0]))
         return winners
 
 
@@ -58,5 +58,6 @@ awards = MOTION_PICTURE_AWARDS + TELEVISION_AWARDS
 
 gg = GoldenGlobes(awards, tweets)
 print "finding host"
-#print gg.find_host()
-print gg.find_awards()
+print gg.find_host()
+for winner in gg.find_awards():
+    print winner
