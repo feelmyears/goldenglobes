@@ -10,10 +10,12 @@ class GoldenGlobes():
         self.awards = awards
         self.tweetDB = tweets
 
+    def show_awards(self):
+        for award in award:
+            print awards
     def find_host(self):
-        name_pattern = ur'([A-Z][a-z]+(?: [A-Z][a-z]+)+)'
+        name_pattern = ur'(@[A-Z][a-z]+(?: [A-Z][a-z]+)+)'
         p = re.compile(name_pattern)
-
         host_counts = Counter()
         for t in self.tweetDB.tweets:
             text = t.text
@@ -24,6 +26,26 @@ class GoldenGlobes():
 
         ml_host = host_counts.most_common(1)[0][0]
         return ml_host
+
+    def find_awards(self):
+        winners=[]
+        name_pattern = ur'([A-Z][a-z]+(?: [A-Z][a-z]+)+)'
+        p = re.compile(name_pattern)
+        for award in self.awards:
+            award_counter=Counter()
+            for t in self.tweetDB.tweets:
+                text=t.text
+                if award in text:
+                    print award
+                    print text
+                    matches = re.findall(p,text)
+                    for h in matches:
+                        award_counter[h]+=1
+                        print h
+            if (award_counter.most_common(1)!=None):
+                winners.append((award,award_counter.most_common(1)))
+        return winners
+
 
 
 # Initializing Tweet Database
@@ -38,4 +60,6 @@ awards = MOTION_PICTURE_AWARDS + TELEVISION_AWARDS
 # Creating GoldenGlobes app
 
 gg = GoldenGlobes(awards, tweets)
-print gg.find_host()
+print "finding host"
+#print gg.find_host()
+gg.find_awards()
