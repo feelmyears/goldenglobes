@@ -30,3 +30,7 @@ TELEVISION_AWARDS = [
     'Best Supporting Actress in a Series, Limited Series or Motion Picture made for Television'
 ]
 
+STOPWORDS = [
+    'best',
+    '-'
+]

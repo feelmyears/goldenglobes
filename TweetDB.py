@@ -1,6 +1,7 @@
 import csv
 from dateutil import parser
 from ttp import ttp
+import pickle
 
 class Tweet():
     def __init__(self):
