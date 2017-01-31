@@ -3,6 +3,9 @@ from TweetDB import Tweet, TweetDB
 from kb import *
 import re
 from collections import Counter
+from nltk.corpus import stopwords
+from textblob import TextBlob
+from textblob.np_extractors import ConllExtractor
 import nltk
 from nltk.corpus import stopwords as nltkstopwords
 
@@ -34,8 +37,21 @@ class GoldenGlobes():
         ml_host = host_counts.most_common(1)[0][0]
         return ml_host
 
-    def find_awards(self):
-        pass
+
+    def find_awards_fuzzy_wuzzy(self):
+        winners=[]
+        award_hash={}
+        for award in self.awards:
+            award_hash[award]={}
+        for tweet in self.tweetDB.tweets:
+            tweet=TextBlob(str(tweet))
+            tweet.correct()
+            for award in self.awards:
+                if award in tweet:
+                    print tweet
+                    print tweet.noun_phrases
+        return winners
+
 
 class AwardClassifier():
     def __init__(self, awards, stopwords, unigram_weight=1, bigram_weight=5):
