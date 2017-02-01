@@ -1,3 +1,5 @@
+import logging
+import time
 import utils
 from TweetDB import Tweet, TweetDB
 from kb import *
@@ -8,8 +10,6 @@ from nltk.corpus import stopwords as nltkstopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 
-USE_FULL_SET = True
-USE_PICKLE = True
 
 class GoldenGlobes():
     def __init__(self, awards, tweetDB, classifier):
@@ -78,29 +78,45 @@ class AwardClassifier():
 
 
 # Initializing Tweet Database
-tweetDB = None
-if USE_PICKLE:
-    tweet_data = 'goldenglobesTweetDB'
-    tweetDB = utils.load(tweet_data)
-else:
-    tweet_data = 'goldenglobes.tab' if USE_FULL_SET else 'goldenglobes_mod.tab'
-    tweetDB = TweetDB()
-    tweetDB.import_tweets(tweet_data)
-    tweetDB.process_tweets()
-    utils.save(tweetDB, 'goldenglobesTweetDB')
 
 
-# Getting Awards
-awards = MOTION_PICTURE_AWARDS + TELEVISION_AWARDS
+def main():
+    logging.basicConfig(filename='performance.log', level=logging.DEBUG)
+    USE_FULL_SET = False
+    USE_PICKLE = False
+    logging.info(" startup at time:" +str(time.time()))
+    tweetDB = None
+    if USE_PICKLE:
+        tweet_data = 'goldenglobesTweetDB'
+        tweetDB = utils.load(tweet_data)
+    else:
+        tweet_data = 'goldenglobes.tab' if USE_FULL_SET else 'goldenglobes_mod.tab'
+        tweetDB = TweetDB()
+        tweetDB.import_tweets(tweet_data)
+        tweetDB.process_tweets()
+        utils.save(tweetDB, 'goldenglobesTweetDB')
 
 
-# Initializing Award Clasifier
-stopwords = nltkstopwords.words('english')
-classifier = AwardClassifier(awards, stopwords)
+    logging.info("tweets loaded at :" +str(time.time()))
+    # Getting Awards
+    awards = MOTION_PICTURE_AWARDS + TELEVISION_AWARDS
 
-# Creating GoldenGlobes app
-gg = GoldenGlobes(awards, tweetDB, classifier)
-for t in gg.tweetDB.tweets:
-    pred_award = gg.classifier.classify_tweet(t.text)
-    if pred_award:
-        print pred_award, t.text
+
+    # Initializing Award Clasifier
+    stopwords = nltkstopwords.words('english')
+    classifier = AwardClassifier(awards, stopwords)
+    logging.info("classifier created at :" +str(time.time()))
+
+    # Creating GoldenGlobes app
+    gg = GoldenGlobes(awards, tweetDB, classifier)
+
+    #parallelize this for loop
+    for t in gg.tweetDB.tweets:
+        pred_award = gg.classifier.classify_tweet(t.text)
+        if pred_award:
+            print pred_award, t.text
+    logging.info("classification completed at :" +str(time.time()))
+
+
+if __name__ == "__main__":
+    main()
