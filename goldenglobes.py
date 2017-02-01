@@ -82,9 +82,10 @@ class AwardClassifier():
 
 def main():
     logging.basicConfig(filename='performance.log', level=logging.DEBUG)
-    USE_FULL_SET = False
-    USE_PICKLE = False
-    logging.info(" startup at time:" +str(time.time()))
+    USE_FULL_SET = True
+    USE_PICKLE = True
+    start_time=time.time()
+    logging.info(" startup at time:" +str(start_time))
     tweetDB = None
     if USE_PICKLE:
         tweet_data = 'goldenglobesTweetDB'
@@ -96,8 +97,8 @@ def main():
         tweetDB.process_tweets()
         utils.save(tweetDB, 'goldenglobesTweetDB')
 
-
-    logging.info("tweets loaded at :" +str(time.time()))
+    load_time=time.time()
+    logging.info("tweets loaded after :" +str(load_time-start_time))
     # Getting Awards
     awards = MOTION_PICTURE_AWARDS + TELEVISION_AWARDS
 
@@ -105,17 +106,20 @@ def main():
     # Initializing Award Clasifier
     stopwords = nltkstopwords.words('english')
     classifier = AwardClassifier(awards, stopwords)
-    logging.info("classifier created at :" +str(time.time()))
+    classifier_time=time.time()
+    logging.info("classifier created after :" +str(classifier_time-load_time))
 
     # Creating GoldenGlobes app
     gg = GoldenGlobes(awards, tweetDB, classifier)
 
     #parallelize this for loop
+
     for t in gg.tweetDB.tweets:
         pred_award = gg.classifier.classify_tweet(t.text)
         if pred_award:
             print pred_award, t.text
-    logging.info("classification completed at :" +str(time.time()))
+    end_time=time.time()
+    logging.info("classification completed after :" +str(end_time-classifier_time))
 
 
 if __name__ == "__main__":
