@@ -9,8 +9,6 @@ from textblob import TextBlob
 from nltk.corpus import stopwords as nltkstopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
-from joblib import Parallel, delayed
-import multiprocessing
 
 
 class GoldenGlobes():
@@ -38,13 +36,14 @@ class GoldenGlobes():
         ml_host = host_counts.most_common(1)[0][0]
         return ml_host
 
+
     def find_awards_fuzzy_wuzzy(self):
-        winners = []
-        award_hash = {}
+        winners=[]
+        award_hash={}
         for award in self.awards:
-            award_hash[award] = {}
+            award_hash[award]={}
         for tweet in self.tweetDB.tweets:
-            tweet = TextBlob(str(tweet))
+            tweet=TextBlob(str(tweet))
             tweet.correct()
             for award in self.awards:
                 if award in tweet:
@@ -63,7 +62,7 @@ class AwardClassifier():
 
     def gen_feature_vector(self, stopwords):
         vect = TfidfVectorizer(analyzer='word', stop_words=stopwords, ngram_range=(1, 3))
-        vect.fit_transform(self.awards)
+        vect.fit_transform(awards)
         return vect
 
     def gen_award_masks(self, feature_vector):
@@ -93,132 +92,22 @@ class AwardClassifier():
         else:
             return None
 
-
-def main():
-    logging.basicConfig(filename='performance.log', level=logging.DEBUG)
-    USE_FULL_SET = True
-    USE_PICKLE = True
-    start_time = time.time()
-    logging.info(" startup at time:" + str(start_time))
-    tweetDB = None
-    if USE_PICKLE:
-        tweet_data = 'goldenglobesTweetDB'
-        tweetDB = utils.load(tweet_data)
-    else:
-        tweet_data = 'goldenglobes.tab' if USE_FULL_SET else 'goldenglobes_mod.tab'
-        tweetDB = TweetDB()
-        tweetDB.import_tweets(tweet_data)
-        tweetDB.process_tweets()
-        utils.save(tweetDB, 'goldenglobesTweetDB')
-
-<<<<<<< HEAD
-
-    load_time = time.time()
-    logging.info("tweets loaded after :" + str(load_time - start_time))
-=======
-    load_time=time.time()
-    logging.info("tweets loaded after :" +str(load_time-start_time))
->>>>>>> parent of 746f8a0... moved to main
-    # Getting Awards
-    awards = MOTION_PICTURE_AWARDS + TELEVISION_AWARDS
-
-    # Initializing Award Clasifier
-    stopwords = nltkstopwords.words('english')
-    classifier = AwardClassifier(awards, stopwords)
-    classifier_time = time.time()
-    logging.info("classifier created after :" + str(classifier_time - load_time))
-
-    # Creating GoldenGlobes app
-    gg = GoldenGlobes(awards, tweetDB, classifier)
-
-<<<<<<< HEAD
-    # parallelize this for loop
-    awd_counts = Counter()
-    total = 0
-    skipped = 0
-    parallel = True
-    if (parallel):
-
-        num_cores = multiprocessing.cpu_count()
-        pred_awards = Parallel(n_jobs=num_cores)(delayed(gg.classifier.classify_tweet)(t.txt) for t in gg.tweetDB.tweets)
-        for pred_award in pred_awards:
-            if pred_award:
-                total += 1
-                awd_counts[pred_award] += 1
-            else:
-                skipped += 1
-
-    else:
-        for t in gg.tweetDB.tweets:
-            pred_award = gg.classifier.classify_tweet(t.text)
-            if pred_award:
-                total += 1
-                awd_counts[pred_award] += 1
-            else:
-                skipped += 1
-
-    print total
-    print awd_counts
-    print awd_counts.most_common()
-    end_time=time.time()
-    logging.info("classification completed after :" + str(end_time - classifier_time))
-
-if __name__ == "__main__":
-    main()
-=======
-    #parallelize this for loop
-
-    for t in gg.tweetDB.tweets:
-        pred_award = gg.classifier.classify_tweet(t.text)
-        if pred_award:
-            print pred_award, t.text
-    end_time=time.time()
-    logging.info("classification completed after :" +str(end_time-classifier_time))
+    #
+    # def classify_tweet(self, tweet_text):
+    #     freqs = self.vect.transform([tweet_text]).toarray()[0]
+    #     features = self.vect.get_feature_names()
+    #     counts = Counter()
+    #     for a in self.awards:
+    #         for i in range(len(features)):
+    #             feat = features[i]
+    #             if re.search(feat, a, re.IGNORECASE):
+    #                 counts[a] = counts[a] + freqs[i]
+    #
+    #     predicted_award = counts.most_common(1)[0]
+    #     if predicted_award[1] > self.pred_thresh:
+    #        return predicted_award[0]
+    #     else:
+    #         return None
 
 
-if __name__ == "__main__":
-    main()
-=======
-tweetDB = None
-if USE_PICKLE:
-    tweet_data = 'goldenglobesTweetDB'
-    tweetDB = utils.load(tweet_data)
-else:
-    tweet_data = 'goldenglobes.tab' if USE_FULL_SET else 'goldenglobes_mod.tab'
-    tweetDB = TweetDB()
-    tweetDB.import_tweets(tweet_data)
-    tweetDB.process_tweets()
-    utils.save(tweetDB, 'goldenglobesTweetDB')
-
-
-# Getting Awards
-awards = MOTION_PICTURE_AWARDS + TELEVISION_AWARDS
-
-
-# Initializing Award Clasifier
-stopwords = nltkstopwords.words('english')
-classifier = AwardClassifier(awards, stopwords)
-
-# Creating GoldenGlobes app
-gg = GoldenGlobes(awards, tweetDB, classifier)
-awd_counts = Counter()
-total = 0
-skipped = 0
-for t in gg.tweetDB.tweets:
-    pred_award = gg.classifier.classify_tweet(t.text)
-    if pred_award:
-        total += 1
-        awd_counts[pred_award] += 1
-    else:
-        skipped += 1
-
-    print total, skipped
-
-print total
-print awd_counts
-print awd_counts.most_common()
-
-
-
->>>>>>> master
->>>>>>> parent of 746f8a0... moved to main
+# Initializing Tweet Database
