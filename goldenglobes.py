@@ -62,7 +62,7 @@ class AwardClassifier():
 
     def gen_feature_vector(self, stopwords):
         vect = TfidfVectorizer(analyzer='word', stop_words=stopwords, ngram_range=(1, 3))
-        vect.fit_transform(awards)
+        vect.fit_transform(self.awards)
         return vect
 
     def gen_award_masks(self, feature_vector):
@@ -91,27 +91,6 @@ class AwardClassifier():
             return predicted_award[0]
         else:
             return None
-
-    #
-    # def classify_tweet(self, tweet_text):
-    #     freqs = self.vect.transform([tweet_text]).toarray()[0]
-    #     features = self.vect.get_feature_names()
-    #     counts = Counter()
-    #     for a in self.awards:
-    #         for i in range(len(features)):
-    #             feat = features[i]
-    #             if re.search(feat, a, re.IGNORECASE):
-    #                 counts[a] = counts[a] + freqs[i]
-    #
-    #     predicted_award = counts.most_common(1)[0]
-    #     if predicted_award[1] > self.pred_thresh:
-    #        return predicted_award[0]
-    #     else:
-    #         return None
-
-
-# Initializing Tweet Database
-
 
 def main():
     logging.basicConfig(filename='performance.log', level=logging.DEBUG)
