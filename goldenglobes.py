@@ -56,25 +56,58 @@ class AwardClassifier():
     def __init__(self, awards, stopwords, pred_thresh=1):
         self.awards = awards
         self.stopwords = stopwords
-        self.vect = TfidfVectorizer(analyzer='word', stop_words=stopwords, ngram_range=(1,3))
-        self.vect.fit_transform(awards)
         self.pred_thresh = pred_thresh
+        self.feature_vector = self.gen_feature_vector(stopwords)
+        self.award_feature_masks = self.gen_award_masks(self.feature_vector)
 
-    def classify_tweet(self, tweet_text):
-        freqs = self.vect.transform([tweet_text]).toarray()[0]
-        features = self.vect.get_feature_names()
-        counts = Counter()
+    def gen_feature_vector(self, stopwords):
+        vect = TfidfVectorizer(analyzer='word', stop_words=stopwords, ngram_range=(1, 3))
+        vect.fit_transform(awards)
+        return vect
+
+    def gen_award_masks(self, feature_vector):
+        features = feature_vector.get_feature_names()
+        num_features = len(features)
+        masks = {}
         for a in self.awards:
-            for i in range(len(features)):
+            m = np.zeros(num_features)
+            for i in range(num_features):
                 feat = features[i]
                 if re.search(feat, a, re.IGNORECASE):
-                    counts[a] = counts[a] + freqs[i]
+                    m[i] = 1
+            masks[a] = m
+        return masks
 
+    def classify_tweet(self, tweet_text):
+        freqs = self.feature_vector.transform([tweet_text]).toarray()[0]
+        features = self.feature_vector.get_feature_names()
+        counts = Counter()
+        for a in self.awards:
+            mask = self.award_feature_masks[a]
+            masked_freqs = np.multiply(freqs, mask)
+            counts[a] = np.sum(masked_freqs)
         predicted_award = counts.most_common(1)[0]
         if predicted_award[1] > self.pred_thresh:
-           return predicted_award[0]
+            return predicted_award[0]
         else:
             return None
+
+    #
+    # def classify_tweet(self, tweet_text):
+    #     freqs = self.vect.transform([tweet_text]).toarray()[0]
+    #     features = self.vect.get_feature_names()
+    #     counts = Counter()
+    #     for a in self.awards:
+    #         for i in range(len(features)):
+    #             feat = features[i]
+    #             if re.search(feat, a, re.IGNORECASE):
+    #                 counts[a] = counts[a] + freqs[i]
+    #
+    #     predicted_award = counts.most_common(1)[0]
+    #     if predicted_award[1] > self.pred_thresh:
+    #        return predicted_award[0]
+    #     else:
+    #         return None
 
 
 # Initializing Tweet Database
@@ -100,7 +133,22 @@ classifier = AwardClassifier(awards, stopwords)
 
 # Creating GoldenGlobes app
 gg = GoldenGlobes(awards, tweetDB, classifier)
+awd_counts = Counter()
+total = 0
+skipped = 0
 for t in gg.tweetDB.tweets:
     pred_award = gg.classifier.classify_tweet(t.text)
     if pred_award:
-        print pred_award, t.text
+        total += 1
+        awd_counts[pred_award] += 1
+    else:
+        skipped += 1
+
+    print total, skipped
+
+print total
+print awd_counts
+print awd_counts.most_common()
+
+
+
