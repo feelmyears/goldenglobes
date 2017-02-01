@@ -111,8 +111,14 @@ def main():
         tweetDB.process_tweets()
         utils.save(tweetDB, 'goldenglobesTweetDB')
 
+<<<<<<< HEAD
+
+    load_time = time.time()
+    logging.info("tweets loaded after :" + str(load_time - start_time))
+=======
     load_time=time.time()
     logging.info("tweets loaded after :" +str(load_time-start_time))
+>>>>>>> parent of 746f8a0... moved to main
     # Getting Awards
     awards = MOTION_PICTURE_AWARDS + TELEVISION_AWARDS
 
@@ -211,3 +217,8 @@ for t in gg.tweetDB.tweets:
 print total
 print awd_counts
 print awd_counts.most_common()
+
+
+
+>>>>>>> master
+>>>>>>> parent of 746f8a0... moved to main
