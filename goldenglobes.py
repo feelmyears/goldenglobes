@@ -3,11 +3,10 @@ from TweetDB import Tweet, TweetDB
 from kb import *
 import re
 from collections import Counter
-from nltk.corpus import stopwords
 from textblob import TextBlob
-from textblob.np_extractors import ConllExtractor
-import nltk
 from nltk.corpus import stopwords as nltkstopwords
+from sklearn.feature_extraction.text import TfidfVectorizer
+import numpy as np
 
 USE_FULL_SET = True
 USE_PICKLE = True
@@ -54,49 +53,28 @@ class GoldenGlobes():
 
 
 class AwardClassifier():
-    def __init__(self, awards, stopwords, unigram_weight=1, bigram_weight=5):
+    def __init__(self, awards, stopwords, pred_thresh=1):
         self.awards = awards
         self.stopwords = stopwords
-        unigrams, bigrams = self.award_bigrams = self.gramify_awards()
-        self.award_unigrams = unigrams
-        self.award_bigrams = bigrams
-        self.unigram_weight = unigram_weight
-        self.bigram_weight = bigram_weight
+        self.vect = TfidfVectorizer(analyzer='word', stop_words=stopwords, ngram_range=(1,3))
+        self.vect.fit_transform(awards)
+        self.pred_thresh = pred_thresh
 
-    def gramify_awards(self):
-        unigrams = {}
-        bigrams = {}
+    def classify_tweet(self, tweet_text):
+        freqs = self.vect.transform([tweet_text]).toarray()[0]
+        features = self.vect.get_feature_names()
+        counts = Counter()
         for a in self.awards:
-            award_unigrams = self.tokenize(a)
-            unigrams[a] = award_unigrams
-            bigrams[a] = nltk.bigrams(award_unigrams)
+            for i in range(len(features)):
+                feat = features[i]
+                if re.search(feat, a, re.IGNORECASE):
+                    counts[a] = counts[a] + freqs[i]
 
-        return unigrams, bigrams
-
-    def tokenize(self, text):
-        raw_tokens = nltk.word_tokenize(text)
-        filtered_tokens = [tok.lower() for tok in raw_tokens if tok.lower() not in self.stopwords]
-        return filtered_tokens
-
-    def score_tweet(self, award, tweet):
-        tweet_unigrams = self.tokenize(tweet)
-        tweet_bigrams = nltk.bigrams(tweet_unigrams)
-
-        common_unigrams = [u for u in tweet_unigrams if u in self.award_unigrams[award]]
-        common_bigrams = [b for b in tweet_bigrams if b in self.award_bigrams[award]]
-
-        score = self.unigram_weight*len(common_unigrams) + self.bigram_weight*len(common_bigrams)
-        return score
-
-    def rank_tweet(self, tweet):
-        scores = Counter()
-        for a in self.awards:
-            scores[a] = self.score_tweet(a, tweet)
-
-        return scores.most_common()
-
-    def classify_tweet(self, tweet):
-        return self.rank_tweet(tweet)[0][0]
+        predicted_award = counts.most_common(1)[0]
+        if predicted_award[1] > self.pred_thresh:
+           return predicted_award[0]
+        else:
+            return None
 
 
 # Initializing Tweet Database
@@ -117,12 +95,12 @@ awards = MOTION_PICTURE_AWARDS + TELEVISION_AWARDS
 
 
 # Initializing Award Clasifier
-stopwords = nltkstopwords.words('english') + STOPWORDS
-unigram_weight = 1
-bigram_weight = 5
-classifier = AwardClassifier(awards, stopwords, unigram_weight, bigram_weight)
+stopwords = nltkstopwords.words('english')
+classifier = AwardClassifier(awards, stopwords)
 
 # Creating GoldenGlobes app
 gg = GoldenGlobes(awards, tweetDB, classifier)
 for t in gg.tweetDB.tweets:
-    print gg.classifier.classify_tweet(t.text), ':\t', t.text
+    pred_award = gg.classifier.classify_tweet(t.text)
+    if pred_award:
+        print pred_award, t.text
