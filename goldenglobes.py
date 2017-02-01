@@ -121,15 +121,16 @@ def main():
     start_time=time.time()
     logging.info(" startup at time:" +str(start_time))
     tweetDB = None
-    if USE_PICKLE:
-        tweet_data = 'goldenglobesTweetDB'
-        tweetDB = utils.load(tweet_data)
-    else:
-        tweet_data = 'goldenglobes.tab' if USE_FULL_SET else 'goldenglobes_mod.tab'
-        tweetDB = TweetDB()
-        tweetDB.import_tweets(tweet_data)
-        tweetDB.process_tweets()
-        utils.save(tweetDB, 'goldenglobesTweetDB')
+tweetDB = None
+	if USE_PICKLE:
+	    tweet_data = 'goldenglobesTweetDB'
+	    tweetDB = utils.load(tweet_data)
+	else:
+	    tweet_data = 'goldenglobes.tab' if USE_FULL_SET else 'goldenglobes_mod.tab'
+	    tweetDB = TweetDB()
+	    tweetDB.import_tweets(tweet_data)
+	    tweetDB.process_tweets()
+	    utils.save(tweetDB, 'goldenglobesTweetDB')
 
     load_time=time.time()
     logging.info("tweets loaded after :" +str(load_time-start_time))
@@ -146,58 +147,25 @@ def main():
     # Creating GoldenGlobes app
     gg = GoldenGlobes(awards, tweetDB, classifier)
 
-    #parallelize this for loop
+	   #parallelize this for loop
+	awd_counts = Counter()
+	total = 0
+	skipped = 0
+	for t in gg.tweetDB.tweets:
+	    pred_award = gg.classifier.classify_tweet(t.text)
+	    if pred_award:
+	        total += 1
+	        awd_counts[pred_award] += 1
+	    else:
+	        skipped += 1
 
-    for t in gg.tweetDB.tweets:
-        pred_award = gg.classifier.classify_tweet(t.text)
-        if pred_award:
-            print pred_award, t.text
-    end_time=time.time()
+	    print total, skipped
+
+	print total
+	print awd_counts
+	print awd_counts.most_common()
     logging.info("classification completed after :" +str(end_time-classifier_time))
 
 
 if __name__ == "__main__":
     main()
-=======
-tweetDB = None
-if USE_PICKLE:
-    tweet_data = 'goldenglobesTweetDB'
-    tweetDB = utils.load(tweet_data)
-else:
-    tweet_data = 'goldenglobes.tab' if USE_FULL_SET else 'goldenglobes_mod.tab'
-    tweetDB = TweetDB()
-    tweetDB.import_tweets(tweet_data)
-    tweetDB.process_tweets()
-    utils.save(tweetDB, 'goldenglobesTweetDB')
-
-
-# Getting Awards
-awards = MOTION_PICTURE_AWARDS + TELEVISION_AWARDS
-
-
-# Initializing Award Clasifier
-stopwords = nltkstopwords.words('english')
-classifier = AwardClassifier(awards, stopwords)
-
-# Creating GoldenGlobes app
-gg = GoldenGlobes(awards, tweetDB, classifier)
-awd_counts = Counter()
-total = 0
-skipped = 0
-for t in gg.tweetDB.tweets:
-    pred_award = gg.classifier.classify_tweet(t.text)
-    if pred_award:
-        total += 1
-        awd_counts[pred_award] += 1
-    else:
-        skipped += 1
-
-    print total, skipped
-
-print total
-print awd_counts
-print awd_counts.most_common()
-
-
-
->>>>>>> master
