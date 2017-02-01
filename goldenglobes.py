@@ -111,7 +111,6 @@ class AwardClassifier():
 
 
 # Initializing Tweet Database
-<<<<<<< HEAD
 
 
 def main():
@@ -121,7 +120,6 @@ def main():
     start_time=time.time()
     logging.info(" startup at time:" +str(start_time))
     tweetDB = None
-tweetDB = None
     if USE_PICKLE:
         tweet_data = 'goldenglobesTweetDB'
         tweetDB = utils.load(tweet_data)
@@ -164,6 +162,7 @@ tweetDB = None
     print total
     print awd_counts
     print awd_counts.most_common()
+    end_time=time.time()
     logging.info("classification completed after :" +str(end_time-classifier_time))
 
 
