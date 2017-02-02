@@ -12,6 +12,8 @@ from nltk.corpus import stopwords as nltkstopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 
+USE_FULL_SET = True
+USE_PICKLE = True
 
 class GoldenGlobes():
     def __init__(self, awards, tweetDB, classifier):
@@ -37,6 +39,20 @@ class GoldenGlobes():
         print host_counts.most_common()
         ml_host = host_counts.most_common(1)[0][0]
         return ml_host
+
+    def find_presenters(self):
+        presenter_pattern = ur'(@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*))? +(?:to +)?present'
+        p = re.compile(presenter_pattern)
+        presenter_counts = Counter()
+        for t in self.tweetDB.tweets:
+            text = t.text
+            if 'present' in text:
+                matches = re.findall(p, text)
+                if len(matches) > 0:
+                    for m in matches[0]:
+                        presenter_counts[m] += 1
+
+        print presenter_counts.most_common()
 
 
     def find_awards_fuzzy_wuzzy(self):
@@ -94,6 +110,7 @@ class AwardClassifier():
         else:
             return None
 
+<<<<<<< HEAD
 def main():
     print 'main'
     logging.basicConfig(filename='performance.log', level=logging.DEBUG)
@@ -160,3 +177,34 @@ def main():
 
 if __name__ == "__main__":
     main()
+=======
+
+# Initializing Tweet Database
+tweetDB = None
+if USE_PICKLE:
+    tweet_data = 'goldenglobesTweetDB'
+    tweetDB = utils.load(tweet_data)
+else:
+    tweet_data = 'goldenglobes.tab' if USE_FULL_SET else 'goldenglobes_mod.tab'
+    tweetDB = TweetDB()
+    tweetDB.import_tweets(tweet_data)
+    tweetDB.process_tweets()
+    utils.save(tweetDB, 'goldenglobesTweetDB')
+
+
+# Getting Awards
+awards = MOTION_PICTURE_AWARDS + TELEVISION_AWARDS
+
+
+# Initializing Award Clasifier
+stopwords = nltkstopwords.words('english')
+classifier = AwardClassifier(awards, stopwords)
+
+# Creating GoldenGlobes app
+gg = GoldenGlobes(awards, tweetDB, classifier)
+gg.find_presenters()
+
+
+
+
+>>>>>>> master
