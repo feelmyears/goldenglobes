@@ -55,7 +55,7 @@ class GoldenGlobes():
         return presenter_counts.most_common()
 
 
-    def find_awards_fuzzy_wuzzy(self):
+    def find_awards_naive(self):
         winners=[]
         award_hash={}
         for award in self.awards:
@@ -67,6 +67,19 @@ class GoldenGlobes():
                 if award in tweet:
                     print tweet
                     print tweet.noun_phrases
+                    for noun in tweet.noun_phrases:
+                        if noun in award_hash:
+                            award_hash[award][noun]=award_hash[award][noun]+1
+                        else:
+                            award_hash[award][noun]=1
+        for award in self.awards:
+            word=""
+            count=0
+            for noun in award_hash[award]:
+                if award_hash[award][noun]>count:
+                    count=award_hash[award][noun]
+                    word = noun
+                winners.append(noun)
         return winners
 
 
@@ -114,8 +127,8 @@ def main():
     print 'main'
     logging.basicConfig(filename='performance.log', level=logging.DEBUG)
     USE_FULL_SET = True
-    USE_PICKLE = True
-    PARALLEL=True
+    USE_PICKLE = False
+    PARALLEL=False
     start_time=time.time()
     logging.info(" startup at time:" +str(start_time))
     tweetDB = None
@@ -150,9 +163,9 @@ def main():
     skipped = 0
 
     if (PARALLEL):
-
         num_cores = multiprocessing.cpu_count()
-        string_list=[t.text for t in gg.tweetDB.tweets]
+        string_list=[str(t.text) for t in gg.tweetDB.tweets]
+        pred_awards=[]
         pred_awards = Parallel(n_jobs=num_cores)(delayed(gg.classifier.classify_tweet)(t) for t in string_list)
         for pred_award in pred_awards:
             if pred_award:
@@ -173,9 +186,12 @@ def main():
     end_time=time.time()
     logging.info("classification completed after :" +str(end_time-classifier_time))
 
+    logging.info("Begin Finding Host")
+    print gg.find_host()
     logging.info("Begin Finding Presenters")
     print gg.find_presenters()
-
+    logging.info("Begin Finding Awards")
+    print gg.find_awards_naive()
 
 if __name__ == "__main__":
     main()
