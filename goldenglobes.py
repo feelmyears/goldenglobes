@@ -47,12 +47,12 @@ class GoldenGlobes():
                 matches = re.findall(p, text)
                 if len(matches) > 0:
                     for m in matches[0]:
-                        presenter_counts[m] += 1
+                        if len(m)>1:
+                            presenter_counts[m] += 1
+        return presenter_counts.most_common(5)
 
-        return presenter_counts.most_common()
 
-
-    def find_awards_naive(self):
+    def find_awards(self):
         winners=[]
         award_hash={}
         for award in self.awards:
@@ -65,9 +65,8 @@ class GoldenGlobes():
                     if noun not in ['goldenglobes']:
                         award_hash[classification][noun] += 1
         for award in self.awards:
-            winners.append(award_hash[award].most_common(5).append(award))
+            winners.append(award_hash[award].most_common())
         return winners
-
 
 class AwardClassifier():
     def __init__(self, awards, stopwords, pred_thresh=1):
@@ -156,7 +155,7 @@ def main():
         print presenter
     print "awards"
     logging.info("Begin Finding Awards winners")
-    for winner in gg.find_awards_naive():
+    for winner in gg.find_awards():
         print winner
 
 if __name__ == "__main__":
