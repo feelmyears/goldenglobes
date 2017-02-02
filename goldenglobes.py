@@ -90,7 +90,7 @@ class AwardClassifier():
             counts[a] = np.sum(masked_freqs)
         predicted_award = counts.most_common(1)[0]
         if predicted_award[1] > self.pred_thresh:
-            return predicted_award[0]
+            return str(predicted_award[0])
         else:
             return None
 
@@ -136,7 +136,8 @@ def main():
     if (PARALLEL):
 
         num_cores = multiprocessing.cpu_count()
-        pred_awards = Parallel(n_jobs=num_cores)(delayed(gg.classifier.classify_tweet)(t.txt) for t in gg.tweetDB.tweets)
+        string_list=[t.text for t in gg.tweetDB.tweets]
+        pred_awards = Parallel(n_jobs=num_cores)(delayed(gg.classifier.classify_tweet)(t) for t in string_list)
         for pred_award in pred_awards:
             if pred_award:
                 total += 1
