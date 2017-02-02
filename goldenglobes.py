@@ -61,14 +61,14 @@ class GoldenGlobes():
         for award in self.awards:
             award_hash[award]={}
         for tweet in self.tweetDB.tweets:
-            tweet=TextBlob(str(tweet))
-            tweet.correct()
-            classification = AwardClassifier.classify_tweet(tweet)
-            for noun in tweet.noun_phrases:
-                if noun in award_hash[classification]:
-                    award_hash[classification][noun] = award_hash[classification][noun] + 1
-                else:
-                    award_hash[classification][noun] = 1
+            classification = self.classifier.classify_tweet(tweet.text)
+            if classification!=None:
+                tweet=TextBlob(tweet.text)
+                for noun in tweet.noun_phrases:
+                    if noun in award_hash[classification]:
+                        award_hash[classification][noun] = award_hash[classification][noun] + 1
+                    else:
+                        award_hash[classification][noun] = 1
         for award in self.awards:
             word=""
             count=0
@@ -76,8 +76,9 @@ class GoldenGlobes():
                 if award_hash[award][noun]>count:
                     count=award_hash[award][noun]
                     word = noun
-                winners.append(word)
-                print "appending"+str(word)
+
+            winners.append(word)
+                #print "appending"+str(word)
         return winners
 
 
@@ -124,8 +125,8 @@ class AwardClassifier():
 def main():
     print 'main'
     logging.basicConfig(filename='performance.log', level=logging.DEBUG)
-    USE_FULL_SET = True
-    USE_PICKLE = False
+    USE_FULL_SET = False
+    USE_PICKLE = True
     PARALLEL=False
     start_time=time.time()
     logging.info(" startup at time:" +str(start_time))
