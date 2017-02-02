@@ -63,6 +63,7 @@ class GoldenGlobes():
         for tweet in self.tweetDB.tweets:
             classification = self.classifier.classify_tweet(tweet.text)
             if classification!=None:
+                tweet=TextBlob(tweet.text)
                 for noun in tweet.noun_phrases:
                     if noun in award_hash[classification]:
                         award_hash[classification][noun] = award_hash[classification][noun] + 1
@@ -75,8 +76,9 @@ class GoldenGlobes():
                 if award_hash[award][noun]>count:
                     count=award_hash[award][noun]
                     word = noun
-                winners.append(word)
-                print "appending"+str(word)
+
+            winners.append(word)
+                #print "appending"+str(word)
         return winners
 
 
