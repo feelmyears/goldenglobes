@@ -61,9 +61,7 @@ class GoldenGlobes():
         for award in self.awards:
             award_hash[award]={}
         for tweet in self.tweetDB.tweets:
-            tweet=TextBlob(str(tweet))
-            tweet.correct()
-            classification = AwardClassifier.classify_tweet(tweet)
+            classification = self.classifier.classify_tweet(tweet.text)
             for noun in tweet.noun_phrases:
                 if noun in award_hash[classification]:
                     award_hash[classification][noun] = award_hash[classification][noun] + 1
