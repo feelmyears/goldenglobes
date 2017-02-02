@@ -12,9 +12,6 @@ from nltk.corpus import stopwords as nltkstopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 
-USE_FULL_SET = True
-USE_PICKLE = True
-
 class GoldenGlobes():
     def __init__(self, awards, tweetDB, classifier):
         self.awards = awards
@@ -59,26 +56,16 @@ class GoldenGlobes():
         winners=[]
         award_hash={}
         for award in self.awards:
-            award_hash[award]={}
+            award_hash[award]=Counter()
         for tweet in self.tweetDB.tweets:
             classification = self.classifier.classify_tweet(tweet.text)
             if classification!=None:
                 tweet=TextBlob(tweet.text)
                 for noun in tweet.noun_phrases:
-                    if noun in award_hash[classification]:
-                        award_hash[classification][noun] = award_hash[classification][noun] + 1
-                    else:
-                        award_hash[classification][noun] = 1
+                    if noun not in ['goldenglobes']:
+                        award_hash[classification][noun] += 1
         for award in self.awards:
-            word=""
-            count=0
-            for noun in award_hash[award]:
-                if award_hash[award][noun]>count:
-                    count=award_hash[award][noun]
-                    word = noun
-
-            winners.append(word)
-                #print "appending"+str(word)
+            winners.append(award_hash[award].most_common(5).append(award))
         return winners
 
 
@@ -125,7 +112,7 @@ class AwardClassifier():
 def main():
     print 'main'
     logging.basicConfig(filename='performance.log', level=logging.DEBUG)
-    USE_FULL_SET = False
+    USE_FULL_SET = True
     USE_PICKLE = True
     PARALLEL=False
     start_time=time.time()
@@ -156,44 +143,21 @@ def main():
     # Creating GoldenGlobes app
     gg = GoldenGlobes(awards, tweetDB, classifier)
 
-       #parallelize this for loop
-    awd_counts = Counter()
-    total = 0
-    skipped = 0
-
-    if (PARALLEL):
-        num_cores = multiprocessing.cpu_count()
-        string_list=[str(t.text) for t in gg.tweetDB.tweets]
-        pred_awards=[]
-        pred_awards = Parallel(n_jobs=num_cores)(delayed(gg.classifier.classify_tweet)(t) for t in string_list)
-        for pred_award in pred_awards:
-            if pred_award:
-                total += 1
-                awd_counts[pred_award] += 1
-            else:
-                skipped += 1
-
-    else:
-        for t in gg.tweetDB.tweets:
-            pred_award = gg.classifier.classify_tweet(t.text)
-            if pred_award:
-                total += 1
-                awd_counts[pred_award] += 1
-            else:
-                skipped += 1
-
+    #parallelize this for loop
     end_time=time.time()
     logging.info("classification completed after :" +str(end_time-classifier_time))
 
     logging.info("Begin Finding Host")
-    print "hosts"
-    #print gg.find_host()
+    print "host"
+    print gg.find_host()
     print "presenters"
     logging.info("Begin Finding Presenters")
-    #print gg.find_presenters()
+    for presenter in gg.find_presenters():
+        print presenter
     print "awards"
-    logging.info("Begin Finding Awards")
-    print gg.find_awards_naive()
+    logging.info("Begin Finding Awards winners")
+    for winner in gg.find_awards_naive():
+        print winner
 
 if __name__ == "__main__":
     main()
