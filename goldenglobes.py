@@ -1,3 +1,5 @@
+from joblib import Parallel, delayed
+import multiprocessing
 import logging
 import time
 import utils
@@ -97,6 +99,7 @@ def main():
     logging.basicConfig(filename='performance.log', level=logging.DEBUG)
     USE_FULL_SET = True
     USE_PICKLE = True
+    PARALLEL=True
     start_time=time.time()
     logging.info(" startup at time:" +str(start_time))
     tweetDB = None
@@ -129,18 +132,27 @@ def main():
     awd_counts = Counter()
     total = 0
     skipped = 0
-    for t in gg.tweetDB.tweets:
-        pred_award = gg.classifier.classify_tweet(t.text)
-        if pred_award:
-            total += 1
-            awd_counts[pred_award] += 1
-        else:
-            skipped += 1
 
-    print total
-    print awd_counts
-    for elem in awd_counts.most_common():
-        print elem
+    if (PARALLEL):
+
+        num_cores = multiprocessing.cpu_count()
+        pred_awards = Parallel(n_jobs=num_cores)(delayed(gg.classifier.classify_tweet)(t.txt) for t in gg.tweetDB.tweets)
+        for pred_award in pred_awards:
+            if pred_award:
+                total += 1
+                awd_counts[pred_award] += 1
+            else:
+                skipped += 1
+
+    else:
+        for t in gg.tweetDB.tweets:
+            pred_award = gg.classifier.classify_tweet(t.text)
+            if pred_award:
+                total += 1
+                awd_counts[pred_award] += 1
+            else:
+                skipped += 1
+
     end_time=time.time()
     logging.info("classification completed after :" +str(end_time-classifier_time))
 
