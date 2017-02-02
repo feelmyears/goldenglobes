@@ -1,3 +1,5 @@
+from joblib import Parallel, delayed
+import multiprocessing
 import logging
 import time
 import utils
@@ -50,10 +52,10 @@ class GoldenGlobes():
                     for m in matches[0]:
                         presenter_counts[m] += 1
 
-        print presenter_counts.most_common()
+        return presenter_counts.most_common()
 
 
-    def find_awards_fuzzy_wuzzy(self):
+    def find_awards_naive(self):
         winners=[]
         award_hash={}
         for award in self.awards:
@@ -65,6 +67,19 @@ class GoldenGlobes():
                 if award in tweet:
                     print tweet
                     print tweet.noun_phrases
+                    for noun in tweet.noun_phrases:
+                        if noun in award_hash:
+                            award_hash[award][noun]=award_hash[award][noun]+1
+                        else:
+                            award_hash[award][noun]=1
+        for award in self.awards:
+            word=""
+            count=0
+            for noun in award_hash[award]:
+                if award_hash[award][noun]>count:
+                    count=award_hash[award][noun]
+                    word = noun
+                winners.append(noun)
         return winners
 
 
@@ -78,7 +93,7 @@ class AwardClassifier():
 
     def gen_feature_vector(self, stopwords):
         vect = TfidfVectorizer(analyzer='word', stop_words=stopwords, ngram_range=(1, 3))
-        vect.fit_transform(awards)
+        vect.fit_transform(self.awards)
         return vect
 
     def gen_award_masks(self, feature_vector):
@@ -104,36 +119,79 @@ class AwardClassifier():
             counts[a] = np.sum(masked_freqs)
         predicted_award = counts.most_common(1)[0]
         if predicted_award[1] > self.pred_thresh:
-            return predicted_award[0]
+            return str(predicted_award[0])
         else:
             return None
 
+def main():
+    print 'main'
+    logging.basicConfig(filename='performance.log', level=logging.DEBUG)
+    USE_FULL_SET = True
+    USE_PICKLE = False
+    PARALLEL=False
+    start_time=time.time()
+    logging.info(" startup at time:" +str(start_time))
+    tweetDB = None
+    if USE_PICKLE:
+        tweet_data = 'goldenglobesTweetDB'
+        tweetDB = utils.load(tweet_data)
+    else:
+        tweet_data = 'goldenglobes.tab' if USE_FULL_SET else 'goldenglobes_mod.tab'
+        tweetDB = TweetDB()
+        tweetDB.import_tweets(tweet_data)
+        tweetDB.process_tweets()
+        utils.save(tweetDB, 'goldenglobesTweetDB')
 
-# Initializing Tweet Database
-tweetDB = None
-if USE_PICKLE:
-    tweet_data = 'goldenglobesTweetDB'
-    tweetDB = utils.load(tweet_data)
-else:
-    tweet_data = 'goldenglobes.tab' if USE_FULL_SET else 'goldenglobes_mod.tab'
-    tweetDB = TweetDB()
-    tweetDB.import_tweets(tweet_data)
-    tweetDB.process_tweets()
-    utils.save(tweetDB, 'goldenglobesTweetDB')
-
-
-# Getting Awards
-awards = MOTION_PICTURE_AWARDS + TELEVISION_AWARDS
-
-
-# Initializing Award Clasifier
-stopwords = nltkstopwords.words('english')
-classifier = AwardClassifier(awards, stopwords)
-
-# Creating GoldenGlobes app
-gg = GoldenGlobes(awards, tweetDB, classifier)
-gg.find_presenters()
+    load_time=time.time()
+    logging.info("tweets loaded after :" +str(load_time-start_time))
+    # Getting Awards
+    awards = MOTION_PICTURE_AWARDS + TELEVISION_AWARDS
 
 
+    # Initializing Award Clasifier
+    stopwords = nltkstopwords.words('english')
+    classifier = AwardClassifier(awards, stopwords)
+    classifier_time=time.time()
+    logging.info("classifier created after :" +str(classifier_time-load_time))
 
+    # Creating GoldenGlobes app
+    gg = GoldenGlobes(awards, tweetDB, classifier)
 
+       #parallelize this for loop
+    awd_counts = Counter()
+    total = 0
+    skipped = 0
+
+    if (PARALLEL):
+        num_cores = multiprocessing.cpu_count()
+        string_list=[str(t.text) for t in gg.tweetDB.tweets]
+        pred_awards=[]
+        pred_awards = Parallel(n_jobs=num_cores)(delayed(gg.classifier.classify_tweet)(t) for t in string_list)
+        for pred_award in pred_awards:
+            if pred_award:
+                total += 1
+                awd_counts[pred_award] += 1
+            else:
+                skipped += 1
+
+    else:
+        for t in gg.tweetDB.tweets:
+            pred_award = gg.classifier.classify_tweet(t.text)
+            if pred_award:
+                total += 1
+                awd_counts[pred_award] += 1
+            else:
+                skipped += 1
+
+    end_time=time.time()
+    logging.info("classification completed after :" +str(end_time-classifier_time))
+
+    logging.info("Begin Finding Host")
+    print gg.find_host()
+    logging.info("Begin Finding Presenters")
+    print gg.find_presenters()
+    logging.info("Begin Finding Awards")
+    print gg.find_awards_naive()
+
+if __name__ == "__main__":
+    main()
