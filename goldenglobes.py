@@ -36,6 +36,20 @@ class GoldenGlobes():
         ml_host = host_counts.most_common(1)[0][0]
         return ml_host
 
+    def find_presenters(self):
+        presenter_pattern = ur'(@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*))? +(?:to +)?present'
+        p = re.compile(presenter_pattern)
+        presenter_counts = Counter()
+        for t in self.tweetDB.tweets:
+            text = t.text
+            if 'present' in text:
+                matches = re.findall(p, text)
+                if len(matches) > 0:
+                    for m in matches[0]:
+                        presenter_counts[m] += 1
+
+        print presenter_counts.most_common()
+
 
     def find_awards_fuzzy_wuzzy(self):
         winners=[]
@@ -92,23 +106,6 @@ class AwardClassifier():
         else:
             return None
 
-    #
-    # def classify_tweet(self, tweet_text):
-    #     freqs = self.vect.transform([tweet_text]).toarray()[0]
-    #     features = self.vect.get_feature_names()
-    #     counts = Counter()
-    #     for a in self.awards:
-    #         for i in range(len(features)):
-    #             feat = features[i]
-    #             if re.search(feat, a, re.IGNORECASE):
-    #                 counts[a] = counts[a] + freqs[i]
-    #
-    #     predicted_award = counts.most_common(1)[0]
-    #     if predicted_award[1] > self.pred_thresh:
-    #        return predicted_award[0]
-    #     else:
-    #         return None
-
 
 # Initializing Tweet Database
 tweetDB = None
@@ -133,22 +130,8 @@ classifier = AwardClassifier(awards, stopwords)
 
 # Creating GoldenGlobes app
 gg = GoldenGlobes(awards, tweetDB, classifier)
-awd_counts = Counter()
-total = 0
-skipped = 0
-for t in gg.tweetDB.tweets:
-    pred_award = gg.classifier.classify_tweet(t.text)
-    if pred_award:
-        total += 1
-        awd_counts[pred_award] += 1
-    else:
-        skipped += 1
+gg.find_presenters()
 
-    print total, skipped
-
-print total
-print awd_counts
-print awd_counts.most_common()
 
 
 
