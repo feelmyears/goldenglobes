@@ -12,9 +12,6 @@ from nltk.corpus import stopwords as nltkstopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 
-USE_FULL_SET = True
-USE_PICKLE = True
-
 class GoldenGlobes():
     def __init__(self, awards, tweetDB, classifier):
         self.awards = awards
@@ -115,7 +112,7 @@ class AwardClassifier():
 def main():
     print 'main'
     logging.basicConfig(filename='performance.log', level=logging.DEBUG)
-    USE_FULL_SET = False
+    USE_FULL_SET = True
     USE_PICKLE = True
     PARALLEL=False
     start_time=time.time()
@@ -147,32 +144,6 @@ def main():
     gg = GoldenGlobes(awards, tweetDB, classifier)
 
     #parallelize this for loop
-    awd_counts = Counter()
-    total = 0
-    skipped = 0
-
-    if (PARALLEL):
-        num_cores = multiprocessing.cpu_count()
-        string_list=[str(t.text) for t in gg.tweetDB.tweets]
-        pred_awards=[]
-        pred_awards = Parallel(n_jobs=num_cores)(delayed(gg.classifier.classify_tweet)(t) for t in string_list)
-        for pred_award in pred_awards:
-            if pred_award:
-                total += 1
-                awd_counts[pred_award] += 1
-            else:
-                skipped += 1
-
-    else:
-        pass
-        for t in gg.tweetDB.tweets:
-            pred_award = gg.classifier.classify_tweet(t.text)
-            if pred_award:
-                total += 1
-                awd_counts[pred_award] += 1
-            else:
-                skipped += 1
-
     end_time=time.time()
     logging.info("classification completed after :" +str(end_time-classifier_time))
 
