@@ -62,9 +62,10 @@ class GoldenGlobes():
             if classification!=None:
                 tweet=TextBlob(tweet.text)
                 for noun in tweet.noun_phrases:
-                    award_hash[classification][noun]+=1
+                    if noun not in ['goldenglobes']:
+                        award_hash[classification][noun] += 1
         for award in self.awards:
-            winners.append(award_hash[award].most_common(3))
+            winners.append(award_hash[award].most_common(5).append(award))
         return winners
 
 
@@ -147,14 +148,16 @@ def main():
     logging.info("classification completed after :" +str(end_time-classifier_time))
 
     logging.info("Begin Finding Host")
-    print "hosts"
-    #print gg.find_host()
+    print "host"
+    print gg.find_host()
     print "presenters"
     logging.info("Begin Finding Presenters")
-    #print gg.find_presenters()
+    for presenter in gg.find_presenters():
+        print presenter
     print "awards"
-    logging.info("Begin Finding Awards")
-    print gg.find_awards_naive()
+    logging.info("Begin Finding Awards winners")
+    for winner in gg.find_awards_naive():
+        print winner
 
 if __name__ == "__main__":
     main()
