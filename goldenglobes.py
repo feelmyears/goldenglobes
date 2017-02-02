@@ -93,6 +93,7 @@ class AwardClassifier():
             return None
 
 def main():
+    print 'main'
     logging.basicConfig(filename='performance.log', level=logging.DEBUG)
     USE_FULL_SET = True
     USE_PICKLE = True
@@ -136,11 +137,10 @@ def main():
         else:
             skipped += 1
 
-        print total, skipped
-
     print total
     print awd_counts
-    print awd_counts.most_common()
+    for elem in awd_counts.most_common():
+        print elem
     end_time=time.time()
     logging.info("classification completed after :" +str(end_time-classifier_time))
 
