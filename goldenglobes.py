@@ -59,25 +59,15 @@ class GoldenGlobes():
         winners=[]
         award_hash={}
         for award in self.awards:
-            award_hash[award]={}
+            award_hash[award]=Counter()
         for tweet in self.tweetDB.tweets:
             classification = self.classifier.classify_tweet(tweet.text)
             if classification!=None:
                 tweet=TextBlob(tweet.text)
                 for noun in tweet.noun_phrases:
-                    if noun in award_hash[classification]:
-                        award_hash[classification][noun] = award_hash[classification][noun] + 1
-                    else:
-                        award_hash[classification][noun] = 1
+                    award_hash[classification]+=1
         for award in self.awards:
-            word=""
-            count=0
-            for noun in award_hash[award]:
-                if award_hash[award][noun]>count:
-                    count=award_hash[award][noun]
-                    word = noun
-
-            winners.append(word)
+            winners.append(award_hash[award].most_common(3))
                 #print "appending"+str(word)
         return winners
 
@@ -156,7 +146,7 @@ def main():
     # Creating GoldenGlobes app
     gg = GoldenGlobes(awards, tweetDB, classifier)
 
-       #parallelize this for loop
+    #parallelize this for loop
     awd_counts = Counter()
     total = 0
     skipped = 0
@@ -174,6 +164,7 @@ def main():
                 skipped += 1
 
     else:
+        pass
         for t in gg.tweetDB.tweets:
             pred_award = gg.classifier.classify_tweet(t.text)
             if pred_award:
