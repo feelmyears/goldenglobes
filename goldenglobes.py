@@ -52,7 +52,7 @@ class GoldenGlobes():
                     for m in matches[0]:
                         presenter_counts[m] += 1
 
-        print presenter_counts.most_common()
+        return presenter_counts.most_common()
 
 
     def find_awards_fuzzy_wuzzy(self):
@@ -110,7 +110,6 @@ class AwardClassifier():
         else:
             return None
 
-<<<<<<< HEAD
 def main():
     print 'main'
     logging.basicConfig(filename='performance.log', level=logging.DEBUG)
@@ -174,37 +173,9 @@ def main():
     end_time=time.time()
     logging.info("classification completed after :" +str(end_time-classifier_time))
 
+    logging.info("Begin Finding Presenters")
+    print gg.find_presenters()
+
 
 if __name__ == "__main__":
     main()
-=======
-
-# Initializing Tweet Database
-tweetDB = None
-if USE_PICKLE:
-    tweet_data = 'goldenglobesTweetDB'
-    tweetDB = utils.load(tweet_data)
-else:
-    tweet_data = 'goldenglobes.tab' if USE_FULL_SET else 'goldenglobes_mod.tab'
-    tweetDB = TweetDB()
-    tweetDB.import_tweets(tweet_data)
-    tweetDB.process_tweets()
-    utils.save(tweetDB, 'goldenglobesTweetDB')
-
-
-# Getting Awards
-awards = MOTION_PICTURE_AWARDS + TELEVISION_AWARDS
-
-
-# Initializing Award Clasifier
-stopwords = nltkstopwords.words('english')
-classifier = AwardClassifier(awards, stopwords)
-
-# Creating GoldenGlobes app
-gg = GoldenGlobes(awards, tweetDB, classifier)
-gg.find_presenters()
-
-
-
-
->>>>>>> master
