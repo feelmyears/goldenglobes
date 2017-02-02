@@ -46,7 +46,7 @@ class GoldenGlobes():
         presenter_counts = Counter()
         for t in self.tweetDB.tweets:
             text = t.text
-            if 'present' in text:
+            if 'present' in text or 'presents' in text or 'presented' in text:
                 matches = re.findall(p, text)
                 if len(matches) > 0:
                     for m in matches[0]:
@@ -63,15 +63,12 @@ class GoldenGlobes():
         for tweet in self.tweetDB.tweets:
             tweet=TextBlob(str(tweet))
             tweet.correct()
-            for award in self.awards:
-                if award in tweet:
-                    print tweet
-                    print tweet.noun_phrases
-                    for noun in tweet.noun_phrases:
-                        if noun in award_hash:
-                            award_hash[award][noun]=award_hash[award][noun]+1
-                        else:
-                            award_hash[award][noun]=1
+            classification = AwardClassifier.classify_tweet(tweet)
+            for noun in tweet.noun_phrases:
+                if noun in award_hash[classification]:
+                    award_hash[classification][noun] = award_hash[classification][noun] + 1
+                else:
+                    award_hash[classification][noun] = 1
         for award in self.awards:
             word=""
             count=0
@@ -79,7 +76,8 @@ class GoldenGlobes():
                 if award_hash[award][noun]>count:
                     count=award_hash[award][noun]
                     word = noun
-                winners.append(noun)
+                winners.append(word)
+                print "appending"+str(word)
         return winners
 
 
@@ -187,9 +185,12 @@ def main():
     logging.info("classification completed after :" +str(end_time-classifier_time))
 
     logging.info("Begin Finding Host")
-    print gg.find_host()
+    print "hosts"
+    #print gg.find_host()
+    print "presenters"
     logging.info("Begin Finding Presenters")
-    print gg.find_presenters()
+    #print gg.find_presenters()
+    print "awards"
     logging.info("Begin Finding Awards")
     print gg.find_awards_naive()
 
