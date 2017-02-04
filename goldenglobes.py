@@ -1,19 +1,9 @@
-from joblib import Parallel, delayed
-import multiprocessing
-import logging
-import time
-import utils
-from TweetDB import Tweet, TweetDB
-from kb import *
 import re
 from collections import Counter
 from textblob import TextBlob
-from nltk.corpus import stopwords as nltkstopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
-
-USE_FULL_SET = True
-USE_PICKLE = True
+from Levenshtein import distance
 
 class GoldenGlobes():
     def __init__(self, awards, tweetDB, classifier):
@@ -37,6 +27,8 @@ class GoldenGlobes():
                     host_counts[h] += 1
 
         print host_counts.most_common()
+        grouped_hosts = group_counts(host_counts.most_common())
+        print grouped_hosts
         ml_host = host_counts.most_common(1)[0][0]
         return ml_host
 
@@ -50,37 +42,26 @@ class GoldenGlobes():
                 matches = re.findall(p, text)
                 if len(matches) > 0:
                     for m in matches[0]:
-                        presenter_counts[m] += 1
+                        if len(m)>1:
+                            presenter_counts[m] += 1
+        return presenter_counts.most_common(5)
 
-        return presenter_counts.most_common()
 
-
-    def find_awards_naive(self):
+    def find_awards(self):
         winners=[]
         award_hash={}
         for award in self.awards:
-            award_hash[award]={}
+            award_hash[award]=Counter()
         for tweet in self.tweetDB.tweets:
             classification = self.classifier.classify_tweet(tweet.text)
             if classification!=None:
                 tweet=TextBlob(tweet.text)
                 for noun in tweet.noun_phrases:
-                    if noun in award_hash[classification]:
-                        award_hash[classification][noun] = award_hash[classification][noun] + 1
-                    else:
-                        award_hash[classification][noun] = 1
+                    if noun not in ['goldenglobes']:
+                        award_hash[classification][noun] += 1
         for award in self.awards:
-            word=""
-            count=0
-            for noun in award_hash[award]:
-                if award_hash[award][noun]>count:
-                    count=award_hash[award][noun]
-                    word = noun
-
-            winners.append(word)
-                #print "appending"+str(word)
+            winners.append(award_hash[award].most_common())
         return winners
-
 
 class AwardClassifier():
     def __init__(self, awards, stopwords, pred_thresh=1):
@@ -122,6 +103,7 @@ class AwardClassifier():
         else:
             return None
 
+<<<<<<< HEAD
 def main():
     print 'main'
     logging.basicConfig(filename='performance.log', level=logging.DEBUG)
@@ -201,3 +183,28 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
+def group_counts(counts, max_dist=10):
+    ungrouped = counts
+    grouped = []
+    while len(ungrouped):
+        pattern, ct = ungrouped[0]
+        new_group_indices = [0]
+        for i in range(1, len(ungrouped)):
+            try:
+                cmp_pattern, cmp_ct = ungrouped[i]
+            except ValueError:
+                pass
+            if should_group(pattern, cmp_pattern, max_dist):
+                ct += cmp_ct
+                new_group_indices.append(i)
+        grouped.append((pattern, ct))
+        ungrouped = [ungrouped[i] for i in range(len(ungrouped)) if i not in new_group_indices]
+
+    grouped_sorted = sorted(grouped, key=lambda x: x[1], reverse=True)
+    return grouped_sorted
+
+
+def should_group(pattern, cmp_pattern, max_dist):
+    # return pattern in cmp_pattern or cmp_pattern in pattern or distance(pattern, cmp_pattern) <= max_dist
+    return distance(pattern, cmp_pattern) <= max_dist
