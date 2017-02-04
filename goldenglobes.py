@@ -125,7 +125,7 @@ class AwardClassifier():
 def main():
     print 'main'
     logging.basicConfig(filename='performance.log', level=logging.DEBUG)
-    USE_FULL_SET = False
+    USE_FULL_SET = True
     USE_PICKLE = True
     PARALLEL=False
     start_time=time.time()
@@ -191,9 +191,13 @@ def main():
     print "presenters"
     logging.info("Begin Finding Presenters")
     #print gg.find_presenters()
+    presenter_time=time.time()
+
     print "awards"
     logging.info("Begin Finding Awards")
     print gg.find_awards_naive()
+    award_time=time.time()
+    logging.info("awards completed after :"+str(award_time-presenter_time))
 
 if __name__ == "__main__":
     main()
