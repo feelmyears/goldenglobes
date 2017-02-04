@@ -3,6 +3,7 @@ from collections import Counter
 from textblob import TextBlob
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
+from Levenshtein import distance
 
 class GoldenGlobes():
     def __init__(self, awards, tweetDB, classifier):
@@ -26,6 +27,8 @@ class GoldenGlobes():
                     host_counts[h] += 1
 
         print host_counts.most_common()
+        grouped_hosts = group_counts(host_counts.most_common())
+        print grouped_hosts
         ml_host = host_counts.most_common(1)[0][0]
         return ml_host
 
@@ -99,3 +102,29 @@ class AwardClassifier():
             return str(predicted_award[0])
         else:
             return None
+
+
+def group_counts(counts, max_dist=10):
+    ungrouped = counts
+    grouped = []
+    while len(ungrouped):
+        pattern, ct = ungrouped[0]
+        new_group_indices = [0]
+        for i in range(1, len(ungrouped)):
+            try:
+                cmp_pattern, cmp_ct = ungrouped[i]
+            except ValueError:
+                pass
+            if should_group(pattern, cmp_pattern, max_dist):
+                ct += cmp_ct
+                new_group_indices.append(i)
+        grouped.append((pattern, ct))
+        ungrouped = [ungrouped[i] for i in range(len(ungrouped)) if i not in new_group_indices]
+
+    grouped_sorted = sorted(grouped, key=lambda x: x[1], reverse=True)
+    return grouped_sorted
+
+
+def should_group(pattern, cmp_pattern, max_dist):
+    # return pattern in cmp_pattern or cmp_pattern in pattern or distance(pattern, cmp_pattern) <= max_dist
+    return distance(pattern, cmp_pattern) <= max_dist
