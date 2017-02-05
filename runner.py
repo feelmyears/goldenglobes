@@ -42,7 +42,7 @@ def main():
     logging.info("classifier created after :" +str(classifier_time-load_time))
 
     # Creating GoldenGlobes app
-    gg = GoldenGlobes(awards, tweetDB, classifier,stopwords)
+    gg = GoldenGlobes(awards, tweetDB, classifier)
     # s = Scorer(gg)
     # s.score_app()
 
@@ -59,8 +59,10 @@ def main():
     #    print presenter
     #print "awards"
     # logging.info("Begin Finding Awards winners")
-    for winner in gg.find_award_winners():
-        print winner
+    winners = gg.find_winners()
+    for a in gg.get_awards():
+        print a
+        print winners[a]
 
 
 if __name__ == "__main__":
