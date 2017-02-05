@@ -8,17 +8,17 @@ from scorer import AwardCeremonyApp
 from imdb import IMDb
 
 class GoldenGlobes(AwardCeremonyApp):
-    def __init__(self, awards, tweetDB, classifier,stopwords):
+    def __init__(self, awards, tweetDB, classifier):
         self.awards = awards
         self.tweetDB = tweetDB
         self.classifier = classifier
         self.imdb = IMDb()
-        self.stopwords=stopwords
+        #self.stopwords=stopwords
         self.present_counter = 0
-        for award in self.awards:
-            for word in award.split():
-                stopwords.append(word.lower())
-            stopwords.append("goldenglobes")
+        #for award in self.awards:
+        #    for word in award.split():
+        #        stopwords.append(word.lower())
+        #    stopwords.append("goldenglobes")
 
     def get_ceremony(self):
         return 'Golden Globes'
@@ -78,11 +78,11 @@ class GoldenGlobes(AwardCeremonyApp):
                     self.present_counter += 1
                     for m in matches[0]:
                         if len(m)>1:
-                            if m.lower() not in self.stopwords:
-                                if classification != None:
-                                    presenter_counts[classification][m] += 1
-                                else:
-                                    unclassified_presenters[m] += 1
+                            #if m.lower() not in self.stopwords:
+                            if classification != None:
+                                presenter_counts[classification][m] += 1
+                            else:
+                                unclassified_presenters[m] += 1
         for award in self.awards:
             most_common = presenter_counts[award].most_common()
             print most_common
@@ -95,6 +95,26 @@ class GoldenGlobes(AwardCeremonyApp):
         return presenters
         
 
+    # New Version
+    def find_winners(self):
+        winners = {}
+        award_hash = {}
+        for award in self.awards:
+            award_hash[award] = Counter()
+        for tweet in self.tweetDB.tweets:
+            classification = self.classifier.classify_tweet(tweet.text)
+            if classification != None:
+                tweet = TextBlob(tweet.text)
+                for noun in tweet.noun_phrases:
+                    if noun not in ['goldenglobes']:
+                        award_hash[classification][noun] += 1
+        for award in self.awards:
+            counts = award_hash[award].most_common(100)
+            grouped = group_counts(counts)
+            winners[award] = grouped
+        return winners
+
+    # Old Version
     def find_award_winners(self):
         winners=[]
         award_hash={}
@@ -134,7 +154,6 @@ class AwardClassifier():
         self.feature_vector = self.gen_feature_vector(stopwords)
         #self.feature_vector_set = self.gen_feature_vector_set(stopwords)
         self.award_feature_masks = self.gen_award_masks(self.feature_vector)
-        print self.award_feature_masks
 
     #def gen_feature_vector_set(self, stopwords):
     #    vect_set = {}
@@ -164,21 +183,16 @@ class AwardClassifier():
 
     def classify_tweet(self, tweet_text):
         freqs = self.feature_vector.transform([tweet_text]).toarray()[0]
-        print tweet_text
-        print freqs
+
         features = self.feature_vector.get_feature_names()
-        print features
         counts = Counter()
         for a in self.awards:
             mask = self.award_feature_masks[a]
             masked_freqs = np.multiply(freqs, mask)
             counts[a] = np.sum(masked_freqs)
-            print mask
-            print masked_freqs
         predicted_award = counts.most_common(1)[0]
-        print predicted_award
         if predicted_award[1] > self.pred_thresh:
-            return str(predicted_award[0])
+            return predicted_award[0]
         else:
             return None
 
@@ -191,11 +205,11 @@ def group_counts(counts, max_dist=10):
         for i in range(1, len(ungrouped)):
             try:
                 cmp_pattern, cmp_ct = ungrouped[i]
+                if should_group(pattern, cmp_pattern, max_dist):
+                    ct += cmp_ct
+                    new_group_indices.append(i)
             except ValueError:
                 pass
-            if should_group(pattern, cmp_pattern, max_dist):
-                ct += cmp_ct
-                new_group_indices.append(i)
         grouped.append((pattern, ct))
         ungrouped = [ungrouped[i] for i in range(len(ungrouped)) if i not in new_group_indices]
 
