@@ -4,6 +4,12 @@ class AwardCeremonyKB():
 
     def get_awards(self):
         """
+        Returns a list of awards
+        """
+        pass
+
+    def get_awards_and_recipients(self):
+        """
         Returns a list of tuples of (award_name, recipient_type) for all awards
         """
         pass

@@ -1,8 +1,9 @@
 from AwardCeremony import AwardCeremonyKB
+from nltk.corpus import stopwords as nltkstopwords
 
 class GoldenGlobesKB(AwardCeremonyKB):
-    def get_awards(self):
-        awards = [
+    def get_awards_and_recipients(self):
+        awards_and_recipients = [
             ('Best Motion Picture - Drama', AwardCeremonyKB.PRODUCTION),
             ('Best Motion Picture - Musical or Comedy', AwardCeremonyKB.PRODUCTION),
             ('Best Director', AwardCeremonyKB.PERSON),
@@ -30,11 +31,23 @@ class GoldenGlobesKB(AwardCeremonyKB):
             ('Best Supporting Actor in a Series, Limited Series or Motion Picture made for Television', AwardCeremonyKB.PERSON),
             ('Best Supporting Actress in a Series, Limited Series or Motion Picture made for Television', AwardCeremonyKB.PERSON)
         ]
-        return awards
+        return awards_and_recipients
+
+    def get_awards(self):
+        return [a[0] for a in self.get_awards_and_recipients()]
 
     def get_stopwords(self):
         stopwords = [
             'best',
-            '-'
+            '-',
+            'goldenglobes',
+            'movie',
+            'rt',
+            'performance',
+            'congratulations',
+            'tv series',
+            'tv',
+            'series'
         ]
+        stopwords.append(nltkstopwords.words('english'))
         return stopwords

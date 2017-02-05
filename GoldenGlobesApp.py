@@ -5,15 +5,14 @@ from textblob import TextBlob
 from Levenshtein import distance
 from imdb import IMDb
 
-class GoldenGlobes(AwardCeremonyApp):
-    def __init__(self, awards, tweetDB, classifier):
-        self.awards = awards
+class GoldenGlobesApp(AwardCeremonyApp):
+    def __init__(self, tweetDB, kb, classifier):
+        self.kb = kb
         self.tweetDB = tweetDB
         self.classifier = classifier
+
         self.imdb = IMDb()
-
         self.present_counter = 0
-
         self.ignored=[]
         for award in self.awards:
             for word in award.split():
@@ -25,7 +24,6 @@ class GoldenGlobes(AwardCeremonyApp):
         self.ignored.append("congratulations")
         self.ignored.append("tv series")
 
-
     def get_name(self):
         return 'Golden Globes'
 
@@ -33,28 +31,24 @@ class GoldenGlobes(AwardCeremonyApp):
         return self.find_host()
 
     def get_awards(self):
-        return self.awards
+        return self.kb.get_awards()
 
     def get_winners(self):
         winners = {}
-        for a in self.awards:
-            winners[a] = None
+        for award, recipient in self.kb.get_awards():
+            winners[award] = None
         return winners
 
     def get_presenters(self):
         presenters = {}
-        for a in self.awards:
-            presenters[a] = None
+        for award, recipient in self.kb.get_awards():
+            presenters[award] = None
         return presenters
 
     def get_bonuses(self):
         bonuses = {}
         # Example: bonuses['Best Dressed'] = 'Emma Stone'
         pass
-
-    def show_awards(self):
-        for award in self.awards:
-            print award
 
     def find_host(self):
         name_pattern = ur'([A-Z][a-z]+(?: [A-Z][a-z]+)+)'
@@ -78,7 +72,7 @@ class GoldenGlobes(AwardCeremonyApp):
         p = re.compile(presenter_pattern)
         presenter_counts = {}
         unclassified_presenters = Counter()
-        for award in self.awards:
+        for award, recipient in self.kb.get_awards():
             presenter_counts[award] = Counter()
         for t in self.tweetDB.tweets:
             text = t.text
@@ -94,7 +88,7 @@ class GoldenGlobes(AwardCeremonyApp):
                                 presenter_counts[classification][m] += 1
                             else:
                                 unclassified_presenters[m] += 1
-        for award in self.awards:
+        for award, recipient in self.kb.get_awards():
             most_common = presenter_counts[award].most_common()
             print most_common
             new_most_common = Counter()
@@ -110,7 +104,7 @@ class GoldenGlobes(AwardCeremonyApp):
     def find_winners(self):
         winners = {}
         award_hash = {}
-        for award in self.awards:
+        for award in self.get_awards():
             award_hash[award] = Counter()
         for tweet in self.tweetDB.tweets:
             classification = self.classifier.classify_tweet(tweet.text)
@@ -120,7 +114,7 @@ class GoldenGlobes(AwardCeremonyApp):
                     for ignoredWord in self.ignored:
                         if noun.lower() not in ignoredWord and ignoredWord not in noun.lower():
                             award_hash[classification][noun] += 1
-        for award in self.awards:
+        for award in self.get_awards():
             counts = award_hash[award].most_common(100)
             grouped = group_counts(counts)
             winners[award] = grouped[0:3]
