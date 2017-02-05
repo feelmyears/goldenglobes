@@ -126,23 +126,6 @@ class GoldenGlobes(AwardCeremonyApp):
             winners[award] = grouped[0:3]
         return winners
 
-    # Old Version
-    def find_award_winners(self):
-        winners=[]
-        award_hash={}
-        for award in self.awards:
-            award_hash[award]=Counter()
-        for tweet in self.tweetDB.tweets:
-            classification = self.classifier.classify_tweet(tweet.text)
-            if classification!=None:
-                tweet=TextBlob(tweet.text)
-                for noun in tweet.noun_phrases:
-                    if noun not in ['goldenglobes']:
-                        award_hash[classification][noun] += 1
-        for award in self.awards:
-            winners.append(award_hash[award].most_common())
-        return winners
-
     def get_true_name(self, messy_name):
         results = self.imdb.search_person(messy_name)
         if results:
