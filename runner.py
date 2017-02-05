@@ -51,16 +51,15 @@ def main():
     logging.info("classification completed after :" +str(end_time-classifier_time))
 
     # logging.info("Begin Finding Host")
-    # print "host"
-    # print gg.find_host()
-    print "presenters"
+    #print "host"
+    #print gg.find_host()
+    #print "presenters"
     # logging.info("Begin Finding Presenters")
-    for presenter in gg.find_presenters():
-        print presenter
-    print "awards"
+    #for presenter in gg.find_presenters():
+    #    print presenter
+    #print "awards"
     # logging.info("Begin Finding Awards winners")
-    for award, winner in gg.find_award_winners().iteritems():
-        print award
+    for winner in gg.find_award_winners():
         print winner
 
 

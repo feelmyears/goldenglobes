@@ -85,18 +85,10 @@ class GoldenGlobes(AwardCeremonyApp):
             if classification!=None:
                 tweet=TextBlob(tweet.text)
                 for noun in tweet.noun_phrases:
-                    name=self.get_true_name(noun)
-                    print noun
-                    print name
-                    #if noun not in self.stopwords:
-                    award_hash[classification][name] += 1
+                    if noun not in ['goldenglobes']:
+                        award_hash[classification][noun] += 1
         for award in self.awards:
-            winners.append((award, award_hash[award].most_common(3)))
-        #
-        #for award in self.awards:
-        #    counts = award_hash[award].most_common(100)
-        #    grouped = group_counts(counts)
-        #    winners[award] = grouped
+            winners.append(award_hash[award].most_common())
         return winners
 
     def get_true_name(self, messy_name):
