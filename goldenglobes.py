@@ -16,6 +16,10 @@ class GoldenGlobes(AwardCeremonyApp):
         	for word in award.split():
         		self.ignored.append(word.lower())
         	self.ignored.append("goldenglobes")
+        	self.ignored.append("movie")
+        	self.ignored.append("rt")
+        	self.ignored.append("goldenglobes")
+
         # self.stopwords=stopwords
         # for award in self.awards:
         #     for word in award.split():
