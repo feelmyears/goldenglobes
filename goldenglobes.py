@@ -45,6 +45,11 @@ class GoldenGlobes(AwardCeremonyApp):
             presenters[a] = None
         return presenters
 
+    def get_bonuses(self):
+        bonuses = {}
+        # Example: bonuses['Best Dressed'] = 'Emma Stone'
+        pass
+
     def show_awards(self):
         for award in self.awards:
             print award

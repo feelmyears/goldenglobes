@@ -14,6 +14,8 @@ class AwardCeremonyApp():
     def get_presenters(self):
         pass
 
+    def get_bonuses(self):
+        pass
 
 class Scorer():
     """
@@ -23,6 +25,7 @@ class Scorer():
         get_awards()        Returns a list of awards given out at the award ceremony
         get_winners()       Returns a dictionary of winners for each award
         get_presenters()    Returns a dictionary of presenters for each award
+        get_bonuses()       Returns a dictionary of bonuses like "best dressed" : "Emma Stone"
     """
     def __init__(self, app):
         self.app = app
