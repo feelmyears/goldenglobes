@@ -33,7 +33,6 @@ class GoldenGlobes():
                 for h in matches:
                     host_counts[h] += 1
 
-        print host_counts.most_common()
         ml_host = host_counts.most_common(1)[0][0]
         return ml_host
 
@@ -65,7 +64,7 @@ class GoldenGlobes():
                     if noun not in ['goldenglobes']:
                         award_hash[classification][noun] += 1
         for award in self.awards:
-            winners.append(award_hash[award].most_common())
+            winners.append(award_hash[award].most_common(5))
         return winners
 
 class AwardClassifier():
