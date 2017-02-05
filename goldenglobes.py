@@ -79,7 +79,7 @@ class GoldenGlobes(AwardCeremonyApp):
                         if len(m)>1:
                             if m.lower() not in self.stopwords:
                                 presenter_counts[m] += 1
-        return presenter_counts.most_common(5)
+        return presenter_counts.most_common(3)
 
     # New Version
     def find_winners(self):
