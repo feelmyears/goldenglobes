@@ -52,18 +52,33 @@ class GoldenGlobes(AwardCeremonyApp):
         return ml_host
 
     def find_presenters(self):
+        presenters = []
         presenter_pattern = ur'(@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*))? +(?:to +)?present'
+        present_detection = r'[Pp]resent'
         p = re.compile(presenter_pattern)
-        presenter_counts = Counter()
+        presenter_counts = {}
+        unclassified_presenters = Counter()
+        for award in self.awards:
+            presenter_counts[award] = Counter()
         for t in self.tweetDB.tweets:
             text = t.text
-            if 'present' in text or 'Present' in text:
+            if re.search(present_detection, text):
                 matches = re.findall(p, text)
                 if len(matches) > 0:
+                    classification = self.classifier.classify_tweet(text)
                     for m in matches[0]:
                         if len(m)>1:
-                            presenter_counts[m] += 1
-        return presenter_counts.most_common(5)
+                            if classification != None:
+                                presenter_counts[classification][m] += 1
+                            else:
+                                unclassified_presenters[m] += 1
+        for award in self.awards:
+            most_common = presenter_counts[award].most_common()
+            new_most_common = Counter()
+            for key, value in most_common:
+                new_most_common[key] = value + unclassified_presenters[key]
+            presenters.append(new_most_common.most_common(1))
+        return presenters
 
 
     def find_awards(self):
@@ -88,7 +103,16 @@ class AwardClassifier():
         self.stopwords = stopwords
         self.pred_thresh = pred_thresh
         self.feature_vector = self.gen_feature_vector(stopwords)
+        self.feature_vector_set = self.gen_feature_vector_set(stopwords)
         self.award_feature_masks = self.gen_award_masks(self.feature_vector)
+
+    def gen_feature_vector_set(self, stopwords):
+        vect_set = {}
+        for award in self.awards:
+            vect = TfidfVectorizer(analyzer='word', stop_words=stopwords, ngram_range=(1, 3))
+            vect.fit_transform([award])
+            vect_set[award] = vect
+        return vect_set
 
     def gen_feature_vector(self, stopwords):
         vect = TfidfVectorizer(analyzer='word', stop_words=stopwords, ngram_range=(1, 3))
