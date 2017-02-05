@@ -6,7 +6,7 @@ from AwardCeremony import AwardCeremonyApp
 from imdb import IMDb
 
 class GoldenGlobes(AwardCeremonyApp):
-    def __init__(self, awards, tweetDB, classifier):
+    def __init__(self, awards, tweetDB, classifier, ignored):
         self.awards = awards
         self.tweetDB = tweetDB
         self.classifier = classifier
@@ -14,7 +14,7 @@ class GoldenGlobes(AwardCeremonyApp):
 
         self.present_counter = 0
 
-        self.ignored=[]
+        self.ignored=
         for award in self.awards:
             for word in award.split():
                self.ignored.append(word.lower())
@@ -52,7 +52,7 @@ class GoldenGlobes(AwardCeremonyApp):
         popular_mention = None
         mention_popularity = 0
         for m, tweets in self.tweetDB.mentions.items():
-            if m.lower() == 'goldenglobes':
+            if m.lower() in self.ignored:
                 continue
             test_popularity = len(tweets)
             if test_popularity > mention_popularity:
@@ -63,7 +63,7 @@ class GoldenGlobes(AwardCeremonyApp):
         popular_tag = None
         tag_popularity = 0
         for t, tweets in self.tweetDB.mentions.items():
-            if t.lower() == 'goldenglobes':
+            if t.lower() in self.ignored:
                 continue
             test_popularity = len(tweets)
             if test_popularity > tag_popularity:
@@ -79,10 +79,13 @@ class GoldenGlobes(AwardCeremonyApp):
             text = t.text
             if re.search(best_dressed_detection, text):
                 matches = re.findall(p, text)
-                print matches
                 if len(matches) > 0:
                     for m in matches:
+                        if m[0].lower() in self.ignored:
+                            continue
                         best_dressed_counts[m[0]] += 1
+
+        print best_dressed_counts
         bonuses['best dressed'] = best_dressed_counts.most_common(1)[0][0]
 
         # Example: bonuses['Best Dressed'] = 'Emma Stone'

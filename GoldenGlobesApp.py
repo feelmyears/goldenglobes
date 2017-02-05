@@ -44,8 +44,51 @@ class GoldenGlobesApp(AwardCeremonyApp):
 
     def get_bonuses(self):
         bonuses = {}
+        stopwords = self.kb.get_stopwords()
+        popular_mention = None
+        mention_popularity = 0
+        for m, tweets in self.tweetDB.mentions.items():
+            if m.lower() in stopwords:
+                continue
+            test_popularity = len(tweets)
+            if test_popularity > mention_popularity:
+                mention_popularity = test_popularity
+                popular_mention = m
+        bonuses['most popular twitter @mention'] = popular_mention
+
+        popular_tag = None
+        tag_popularity = 0
+        for t, tweets in self.tweetDB.mentions.items():
+            if t.lower() in stopwords:
+                continue
+            test_popularity = len(tweets)
+            if test_popularity > tag_popularity:
+                tag_popularity = test_popularity
+                popular_tag = t
+        bonuses['most popular twitter #tag'] = popular_tag
+
+        stopwords.append('best')
+        stopwords.append('dressed')
+        stopwords.append('best dressed')
+        stopwords.append('see')
+
+        best_dressed_counts = Counter()
+        best_dressed_detection = r'[Bb]est[- ][Dd]ressed'
+        best_dressed_pattern = ur'(@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*))? +'
+        p = re.compile(best_dressed_pattern)
+        for t in self.tweetDB.tweets:
+            text = t.text
+            if re.search(best_dressed_detection, text):
+                matches = re.findall(p, text)
+                if len(matches) > 0:
+                    for m in matches:
+                        if m[0].lower() in stopwords:
+                            continue
+                        best_dressed_counts[m[0]] += 1
+        bonuses['best dressed'] = best_dressed_counts.most_common(1)[0][0]
+
         # Example: bonuses['Best Dressed'] = 'Emma Stone'
-        pass
+        return bonuses
 
     def find_host(self):
         name_pattern = ur'([A-Z][a-z]+(?: [A-Z][a-z]+)+)'
