@@ -14,9 +14,11 @@ class GoldenGlobes(AwardCeremonyApp):
         self.classifier = classifier
         self.imdb = IMDb()
         self.stopwords=stopwords
+        self.present_counter = 0
         for award in self.awards:
             for word in award.split():
-                stopwords.append(word)
+                stopwords.append(word.lower())
+            stopwords.append("goldenglobes")
 
     def get_ceremony(self):
         return 'Golden Globes'
@@ -73,23 +75,28 @@ class GoldenGlobes(AwardCeremonyApp):
                 matches = re.findall(p, text)
                 if len(matches) > 0:
                     classification = self.classifier.classify_tweet(text)
+                    self.present_counter += 1
                     for m in matches[0]:
                         if len(m)>1:
-                            if classification != None:
-                                presenter_counts[classification][m] += 1
-                            else:
-                                unclassified_presenters[m] += 1
+                            if m.lower() not in self.stopwords:
+                                if classification != None:
+                                    presenter_counts[classification][m] += 1
+                                else:
+                                    unclassified_presenters[m] += 1
         for award in self.awards:
             most_common = presenter_counts[award].most_common()
+            print most_common
             new_most_common = Counter()
             for key, value in most_common:
                 new_most_common[key] = value + unclassified_presenters[key]
-            presenters.append(new_most_common.most_common(1))
+            presenters.append(new_most_common.most_common(5))
+        print unclassified_presenters
+        print self.present_counter
         return presenters
+        
 
-
-    def find_awards(self):
-        winners={}
+    def find_award_winners(self):
+        winners=[]
         award_hash={}
         for award in self.awards:
             award_hash[award]=Counter()
@@ -98,12 +105,10 @@ class GoldenGlobes(AwardCeremonyApp):
             if classification!=None:
                 tweet=TextBlob(tweet.text)
                 for noun in tweet.noun_phrases:
-                    if noun not in self.stopwords:
+                    if noun not in ['goldenglobes']:
                         award_hash[classification][noun] += 1
         for award in self.awards:
-            counts = award_hash[award].most_common(100)
-            grouped = group_counts(counts)
-            winners[award] = grouped
+            winners.append(award_hash[award].most_common())
         return winners
 
     def get_true_name(self, messy_name):
@@ -128,6 +133,7 @@ class AwardClassifier():
         self.feature_vector = self.gen_feature_vector(stopwords)
         self.feature_vector_set = self.gen_feature_vector_set(stopwords)
         self.award_feature_masks = self.gen_award_masks(self.feature_vector)
+        print self.awards
 
     def gen_feature_vector_set(self, stopwords):
         vect_set = {}
