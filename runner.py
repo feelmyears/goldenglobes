@@ -43,8 +43,8 @@ def main():
 
     # Creating GoldenGlobes app
     gg = GoldenGlobes(awards, tweetDB, classifier)
-    s = Scorer(gg)
-    s.score_app()
+    # s = Scorer(gg)
+    # s.score_app()
 
     #parallelize this for loop
     end_time=time.time()
@@ -59,8 +59,9 @@ def main():
     #     print presenter
     # print "awards"
     # logging.info("Begin Finding Awards winners")
-    # for winner in gg.find_awards():
-    #     print winner
+    for award, winner in gg.find_awards().iteritems():
+        print award
+        print winner
 
 
 if __name__ == "__main__":

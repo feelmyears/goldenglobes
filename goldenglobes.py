@@ -5,11 +5,14 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 from Levenshtein import distance
 from scorer import AwardCeremonyApp
+from imdb import IMDb
+
 class GoldenGlobes(AwardCeremonyApp):
     def __init__(self, awards, tweetDB, classifier):
         self.awards = awards
         self.tweetDB = tweetDB
         self.classifier = classifier
+        self.imdb = IMDb()
 
     def get_ceremony(self):
         return 'Golden Globes'
@@ -67,7 +70,7 @@ class GoldenGlobes(AwardCeremonyApp):
 
 
     def find_awards(self):
-        winners=[]
+        winners={}
         award_hash={}
         for award in self.awards:
             award_hash[award]=Counter()
@@ -79,8 +82,24 @@ class GoldenGlobes(AwardCeremonyApp):
                     if noun not in ['goldenglobes']:
                         award_hash[classification][noun] += 1
         for award in self.awards:
-            winners.append((award,(award_hash[award].most_common(10))))
+            counts = award_hash[award].most_common(100)
+            grouped = group_counts(counts)
+            winners[award] = grouped
         return winners
+
+    def get_true_name(self, messy_name):
+        results = self.imdb.search_person(messy_name)
+        if results:
+            return results[0]['name']
+        else:
+            return None
+
+    def get_true_title(self, messy_title):
+        results = self.imdb.search_movie(messy_title)
+        if results:
+            return results[0]['title']
+        else:
+            return None
 
 class AwardClassifier():
     def __init__(self, awards, stopwords, pred_thresh=1):

@@ -30,7 +30,7 @@ class Scorer():
     def score_app(self):
         ceremony_name = self.app.get_ceremony()
         host = self.app.get_host()
-        print 'Scoring app for {} ceremony, hosted by {}'.format(ceremony_name, host)
+        print 'Scoring app for {} award ceremony, hosted by {}'.format(ceremony_name, host)
         awards = self.app.get_awards()
         presenters = self.app.get_presenters()
         winners = self.app.get_winners()
