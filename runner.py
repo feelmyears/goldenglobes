@@ -42,7 +42,7 @@ def main():
     logging.info("classifier created after :" +str(classifier_time-load_time))
 
     # Creating GoldenGlobes app
-    gg = GoldenGlobes(awards, tweetDB, classifier)
+    gg = GoldenGlobes(awards, tweetDB, classifier,stopwords)
     # s = Scorer(gg)
     # s.score_app()
 
