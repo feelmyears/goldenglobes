@@ -57,8 +57,7 @@ def main():
     print gg.find_host()
     print "presenters"
     # logging.info("Begin Finding Presenters")
-    for presenter in gg.find_presenters():
-        print presenter
+    print gg.find_presenters()
     #print "awards"
     # logging.info("Begin Finding Awards winners")
     winners = gg.find_winners()

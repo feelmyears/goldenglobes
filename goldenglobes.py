@@ -119,8 +119,9 @@ class GoldenGlobes(AwardCeremonyApp):
             if classification != None:
                 tweet = TextBlob(tweet.text)
                 for noun in tweet.noun_phrases:
-                    if noun.lower() not in self.ignored and self.ignored not in noun.lower():
-                        award_hash[classification][noun] += 1
+                	for ignoredWord in self.ignored:
+	                    if noun.lower() not in ignoredWord and ignoredWord not in noun.lower():
+    	                	award_hash[classification][noun] += 1
         for award in self.awards:
             counts = award_hash[award].most_common(100)
             grouped = group_counts(counts)
