@@ -4,12 +4,30 @@ from textblob import TextBlob
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 from Levenshtein import distance
-
-class GoldenGlobes():
+from scorer import AwardCeremonyApp
+class GoldenGlobes(AwardCeremonyApp):
     def __init__(self, awards, tweetDB, classifier):
         self.awards = awards
         self.tweetDB = tweetDB
         self.classifier = classifier
+
+    def get_ceremony(self):
+        return 'Golden Globes'
+
+    def get_host(self):
+        return self.find_host()
+
+    def get_awards(self):
+        return self.awards
+
+    def get_winners(self):
+        pass
+
+    def get_presenters(self):
+        presenters = {}
+        for a in self.awards:
+            presenters[a] = None
+        return presenters
 
     def show_awards(self):
         for award in self.awards:
