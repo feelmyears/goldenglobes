@@ -16,7 +16,8 @@ class GoldenGlobes(AwardCeremonyApp):
         self.stopwords=stopwords
         for award in self.awards:
             for word in award.split():
-                stopwords.append(word)
+                stopwords.append(word.lower())
+            stopwords.append("goldenglobes")
 
     def get_ceremony(self):
         return 'Golden Globes'
