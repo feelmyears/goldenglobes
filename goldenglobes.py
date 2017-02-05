@@ -26,9 +26,9 @@ class GoldenGlobes():
                 for h in matches:
                     host_counts[h] += 1
 
-        print host_counts.most_common()
+        #print host_counts.most_common()
         grouped_hosts = group_counts(host_counts.most_common())
-        print grouped_hosts
+        #print grouped_hosts
         ml_host = host_counts.most_common(1)[0][0]
         return ml_host
 
@@ -38,7 +38,7 @@ class GoldenGlobes():
         presenter_counts = Counter()
         for t in self.tweetDB.tweets:
             text = t.text
-            if 'present' in text or 'presents' in text or 'presented' in text:
+            if 'present' in text or 'Present' in text:
                 matches = re.findall(p, text)
                 if len(matches) > 0:
                     for m in matches[0]:
@@ -60,7 +60,7 @@ class GoldenGlobes():
                     if noun not in ['goldenglobes']:
                         award_hash[classification][noun] += 1
         for award in self.awards:
-            winners.append(award_hash[award].most_common())
+            winners.append(award,(award_hash[award].most_common(10)))
         return winners
 
 class AwardClassifier():
@@ -102,7 +102,6 @@ class AwardClassifier():
             return str(predicted_award[0])
         else:
             return None
-
 
 def group_counts(counts, max_dist=10):
     ungrouped = counts
