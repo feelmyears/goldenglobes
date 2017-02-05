@@ -2,7 +2,7 @@ import re
 from collections import Counter
 from textblob import TextBlob
 from Levenshtein import distance
-from scorer import AwardCeremonyApp
+from AwardCeremony import AwardCeremonyApp
 from imdb import IMDb
 
 class GoldenGlobes(AwardCeremonyApp):
@@ -16,16 +16,14 @@ class GoldenGlobes(AwardCeremonyApp):
 
         self.ignored=[]
         for award in self.awards:
-        	for word in award.split():
-        		self.ignored.append(word.lower())
-        	self.ignored.append("goldenglobes")
-        	self.ignored.append("movie")
-        	self.ignored.append("rt")
-        	self.ignored.append("performance")
-        	self.ignored.append("congratulations")
-        	self.ignored.append("tv series")
-
-
+            for word in award.split():
+               self.ignored.append(word.lower())
+        self.ignored.append("goldenglobes")
+        self.ignored.append("movie")
+        self.ignored.append("rt")
+        self.ignored.append("performance")
+        self.ignored.append("congratulations")
+        self.ignored.append("tv series")
 
 
     def get_ceremony(self):
@@ -51,8 +49,28 @@ class GoldenGlobes(AwardCeremonyApp):
 
     def get_bonuses(self):
         bonuses = {}
+        popular_mention = None
+        mention_popularity = 0
+        for m, tweets in self.tweetDB.mentions.items():
+            if m.lower() == 'goldenglobes':
+                continue
+            test_popularity = len(tweets)
+            if test_popularity > mention_popularity:
+                mention_popularity = test_popularity
+                popular_mention = m
+        popular_tag = None
+        tag_popularity = 0
+        for t, tweets in self.tweetDB.mentions.items():
+            if t.lower() == 'goldenglobes':
+                continue
+            test_popularity = len(tweets)
+            if test_popularity > tag_popularity:
+                tag_popularity = test_popularity
+                popular_tag = t
+        bonuses['most popular twitter #tag'] = popular_tag
+        bonuses['most popular twitter @mention'] = popular_mention
         # Example: bonuses['Best Dressed'] = 'Emma Stone'
-        pass
+        return bonuses
 
     def show_awards(self):
         for award in self.awards:
@@ -119,29 +137,18 @@ class GoldenGlobes(AwardCeremonyApp):
             if classification != None:
                 tweet = TextBlob(tweet.text)
                 for noun in tweet.noun_phrases:
+<<<<<<< HEAD
                     if noun.lower() not in self.ignored:
                         award_hash[classification][noun] += 1
+=======
+                    for ignoredWord in self.ignored:
+                        if noun.lower() not in ignoredWord and ignoredWord not in noun.lower():
+                            award_hash[classification][noun] += 1
+>>>>>>> origin/master
         for award in self.awards:
             counts = award_hash[award].most_common(100)
             grouped = group_counts(counts)
             winners[award] = grouped[0:3]
-        return winners
-
-    # Old Version
-    def find_award_winners(self):
-        winners=[]
-        award_hash={}
-        for award in self.awards:
-            award_hash[award]=Counter()
-        for tweet in self.tweetDB.tweets:
-            classification = self.classifier.classify_tweet(tweet.text)
-            if classification!=None:
-                tweet=TextBlob(tweet.text)
-                for noun in tweet.noun_phrases:
-                    if noun not in ['goldenglobes']:
-                        award_hash[classification][noun] += 1
-        for award in self.awards:
-            winners.append(award_hash[award].most_common())
         return winners
 
     def get_true_name(self, messy_name):
@@ -155,57 +162,6 @@ class GoldenGlobes(AwardCeremonyApp):
         results = self.imdb.search_movie(messy_title)
         if results:
             return results[0]['title']
-        else:
-            return None
-
-class AwardClassifier():
-    def __init__(self, awards, stopwords, pred_thresh=1):
-        self.awards = awards
-        self.stopwords = stopwords
-        print stopwords
-        self.pred_thresh = pred_thresh
-        self.feature_vector = self.gen_feature_vector(stopwords)
-        #self.feature_vector_set = self.gen_feature_vector_set(stopwords)
-        self.award_feature_masks = self.gen_award_masks(self.feature_vector)
-
-    #def gen_feature_vector_set(self, stopwords):
-    #    vect_set = {}
-    #    for award in self.awards:
-    ##        vect = TfidfVectorizer(analyzer='word', stop_words=stopwords, ngram_range=(1, 3))
-    ##        vect.fit_transform([award])
-    #        vect_set[award] = vect
-     #   return vect_set
-
-    def gen_feature_vector(self, stopwords):
-        vect = TfidfVectorizer(analyzer='word', stop_words=stopwords, ngram_range=(1, 3))
-        vect.fit_transform(self.awards)
-        return vect
-
-    def gen_award_masks(self, feature_vector):
-        features = feature_vector.get_feature_names()
-        num_features = len(features)
-        masks = {}
-        for a in self.awards:
-            m = np.zeros(num_features)
-            for i in range(num_features):
-                feat = features[i]
-                if re.search(feat, a, re.IGNORECASE):
-                    m[i] = 1
-            masks[a] = m
-        return masks
-
-    def classify_tweet(self, tweet_text):
-        freqs = self.feature_vector.transform([tweet_text]).toarray()[0]
-
-        features = self.feature_vector.get_feature_names()
-        counts = Counter()
-        for a in self.awards:
-            mask = self.award_feature_masks[a]
-            masked_freqs = np.multiply(freqs, mask)
-            counts[a] = np.sum(masked_freqs)
-        predicted_award = counts.most_common(1)[0]
-        if predicted_award[1] > self.pred_thresh:
-            return predicted_award[0]
         else:
             return None
 
