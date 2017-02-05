@@ -7,6 +7,7 @@ from TweetDB import TweetDB
 from kb import *
 from nltk.corpus import stopwords as nltkstopwords
 from goldenglobes import *
+from scorer import Scorer
 
 def main():
     print 'main'
@@ -42,22 +43,25 @@ def main():
 
     # Creating GoldenGlobes app
     gg = GoldenGlobes(awards, tweetDB, classifier)
+    s = Scorer(gg)
+    s.score_app()
 
     #parallelize this for loop
     end_time=time.time()
     logging.info("classification completed after :" +str(end_time-classifier_time))
 
-    logging.info("Begin Finding Host")
-    print "host"
-    print gg.find_host()
-    print "presenters"
-    logging.info("Begin Finding Presenters")
-    for presenter in gg.find_presenters():
-        print presenter
-    print "awards"
-    logging.info("Begin Finding Awards winners")
-    for winner in gg.find_awards():
-        print winner
+    # logging.info("Begin Finding Host")
+    # print "host"
+    # print gg.find_host()
+    # print "presenters"
+    # logging.info("Begin Finding Presenters")
+    # for presenter in gg.find_presenters():
+    #     print presenter
+    # print "awards"
+    # logging.info("Begin Finding Awards winners")
+    # for winner in gg.find_awards():
+    #     print winner
+
 
 if __name__ == "__main__":
     main()

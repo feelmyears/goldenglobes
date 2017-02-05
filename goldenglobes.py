@@ -21,7 +21,10 @@ class GoldenGlobes(AwardCeremonyApp):
         return self.awards
 
     def get_winners(self):
-        pass
+        winners = {}
+        for a in self.awards:
+            winners[a] = None
+        return winners
 
     def get_presenters(self):
         presenters = {}
@@ -44,10 +47,8 @@ class GoldenGlobes(AwardCeremonyApp):
                 for h in matches:
                     host_counts[h] += 1
 
-        #print host_counts.most_common()
         grouped_hosts = group_counts(host_counts.most_common())
-        #print grouped_hosts
-        ml_host = host_counts.most_common(1)[0][0]
+        ml_host = grouped_hosts[0][0]
         return ml_host
 
     def find_presenters(self):
