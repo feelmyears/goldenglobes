@@ -11,6 +11,15 @@ class GoldenGlobes(AwardCeremonyApp):
         self.tweetDB = tweetDB
         self.classifier = classifier
         self.imdb = IMDb()
+        self.ignored=[]
+        for award in self.awards:
+        	for word in award.split():
+        		self.ignored.append(word.lower())
+        	self.ignored.append("goldenglobes")
+        	self.ignored.append("movie")
+        	self.ignored.append("rt")
+        	self.ignored.append("goldenglobes")
+
         # self.stopwords=stopwords
         # for award in self.awards:
         #     for word in award.split():
@@ -70,7 +79,7 @@ class GoldenGlobes(AwardCeremonyApp):
                         if len(m)>1:
                             if m.lower() not in self.stopwords:
                                 presenter_counts[m] += 1
-        return presenter_counts.most_common(5)
+        return presenter_counts.most_common(3)
 
     # New Version
     def find_winners(self):
@@ -83,7 +92,7 @@ class GoldenGlobes(AwardCeremonyApp):
             if classification != None:
                 tweet = TextBlob(tweet.text)
                 for noun in tweet.noun_phrases:
-                    if noun not in ['goldenglobes']:
+                    if noun.lower() not in self.ignored:
                         award_hash[classification][noun] += 1
         for award in self.awards:
             counts = award_hash[award].most_common(100)

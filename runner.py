@@ -60,7 +60,7 @@ def main():
     #    print presenter
     #print "awards"
     # logging.info("Begin Finding Awards winners")
-    winners = gg.find_winners()
+    #winners = gg.find_winners()
     for a in gg.get_awards():
         print a
         print winners[a]
