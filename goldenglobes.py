@@ -58,6 +58,8 @@ class GoldenGlobes(AwardCeremonyApp):
             if test_popularity > mention_popularity:
                 mention_popularity = test_popularity
                 popular_mention = m
+        bonuses['most popular twitter @mention'] = popular_mention
+
         popular_tag = None
         tag_popularity = 0
         for t, tweets in self.tweetDB.mentions.items():
@@ -68,7 +70,21 @@ class GoldenGlobes(AwardCeremonyApp):
                 tag_popularity = test_popularity
                 popular_tag = t
         bonuses['most popular twitter #tag'] = popular_tag
-        bonuses['most popular twitter @mention'] = popular_mention
+
+        best_dressed_counts = Counter()
+        best_dressed_detection = r'[Bb]est[- ][Dd]ressed'
+        best_dressed_pattern = ur'(@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*))? +'
+        p = re.compile(best_dressed_pattern)
+        for t in self.tweetDB.tweets:
+            text = t.text
+            if re.search(best_dressed_detection, text):
+                matches = re.findall(p, text)
+                print matches
+                if len(matches) > 0:
+                    for m in matches:
+                        best_dressed_counts[m[0]] += 1
+        bonuses['best dressed'] = best_dressed_counts.most_common(1)[0][0]
+
         # Example: bonuses['Best Dressed'] = 'Emma Stone'
         return bonuses
 
