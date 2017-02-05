@@ -55,6 +55,11 @@ def main():
     # logging.info("Begin Finding Host")
     print "host"
     print gg.find_host()
+    print "bonuses"
+    bonuses = gg.get_bonuses()
+    for bonus in bonuses:
+        print bonus
+        print bonuses[bonus]
     print "presenters"
     # logging.info("Begin Finding Presenters")
     print gg.find_presenters()
