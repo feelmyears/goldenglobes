@@ -8,6 +8,7 @@ from kb import *
 from nltk.corpus import stopwords as nltkstopwords
 from goldenglobes import *
 from scorer import Scorer
+from AwardClassifier import AwardClassifier
 
 def main():
     print 'main'
