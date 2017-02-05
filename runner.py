@@ -54,10 +54,10 @@ def main():
     # logging.info("Begin Finding Presenters")
     # for presenter in gg.find_presenters():
     #     print presenter
-    # print "awards"
-    # logging.info("Begin Finding Awards winners")
-    # for winner in gg.find_awards():
-    #     print winner
+    print "awards"
+    logging.info("Begin Finding Awards winners")
+    for winner in gg.find_awards():
+        print winner
 
 if __name__ == "__main__":
     main()
