@@ -70,12 +70,13 @@ class GoldenGlobes(AwardCeremonyApp):
                 if len(matches) > 0:
                     for m in matches[0]:
                         if len(m)>1:
-                            presenter_counts[m] += 1
+                            if m.lower() not in self.stopwords:
+                                presenter_counts[m] += 1
         return presenter_counts.most_common(5)
 
 
-    def find_awards(self):
-        winners={}
+    def find_award_winners(self):
+        winners=[]
         award_hash={}
         for award in self.awards:
             award_hash[award]=Counter()
@@ -84,12 +85,18 @@ class GoldenGlobes(AwardCeremonyApp):
             if classification!=None:
                 tweet=TextBlob(tweet.text)
                 for noun in tweet.noun_phrases:
-                    if noun not in self.stopwords:
-                        award_hash[classification][noun] += 1
+                    name=self.get_true_name(noun)
+                    print noun
+                    print name
+                    #if noun not in self.stopwords:
+                    award_hash[classification][name] += 1
         for award in self.awards:
-            counts = award_hash[award].most_common(100)
-            grouped = group_counts(counts)
-            winners[award] = grouped
+            winners.append((award, award_hash[award].most_common(3)))
+        #
+        #for award in self.awards:
+        #    counts = award_hash[award].most_common(100)
+        #    grouped = group_counts(counts)
+        #    winners[award] = grouped
         return winners
 
     def get_true_name(self, messy_name):
