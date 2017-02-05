@@ -1,8 +1,6 @@
 import re
 from collections import Counter
 from textblob import TextBlob
-from sklearn.feature_extraction.text import TfidfVectorizer
-import numpy as np
 from Levenshtein import distance
 from scorer import AwardCeremonyApp
 from imdb import IMDb
@@ -13,12 +11,18 @@ class GoldenGlobes(AwardCeremonyApp):
         self.tweetDB = tweetDB
         self.classifier = classifier
         self.imdb = IMDb()
-        #self.stopwords=stopwords
+
         self.present_counter = 0
-        #for award in self.awards:
-        #    for word in award.split():
-        #        stopwords.append(word.lower())
-        #    stopwords.append("goldenglobes")
+
+        self.ignored=[]
+        for award in self.awards:
+        	for word in award.split():
+        		self.ignored.append(word.lower())
+        	self.ignored.append("goldenglobes")
+        	self.ignored.append("movie")
+        	self.ignored.append("rt")
+        	self.ignored.append("goldenglobes")
+
 
     def get_ceremony(self):
         return 'Golden Globes'
@@ -106,7 +110,7 @@ class GoldenGlobes(AwardCeremonyApp):
             if classification != None:
                 tweet = TextBlob(tweet.text)
                 for noun in tweet.noun_phrases:
-                    if noun not in ['goldenglobes']:
+                    if noun.lower() not in self.ignored:
                         award_hash[classification][noun] += 1
         for award in self.awards:
             counts = award_hash[award].most_common(100)
