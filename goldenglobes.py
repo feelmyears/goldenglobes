@@ -8,11 +8,16 @@ from scorer import AwardCeremonyApp
 from imdb import IMDb
 
 class GoldenGlobes(AwardCeremonyApp):
-    def __init__(self, awards, tweetDB, classifier):
+    def __init__(self, awards, tweetDB, classifier,stopwords):
         self.awards = awards
         self.tweetDB = tweetDB
         self.classifier = classifier
         self.imdb = IMDb()
+        self.stopwords=stopwords
+        for award in self.awards:
+            for word in award.split():
+                stopwords.append(word.lower())
+            stopwords.append("goldenglobes")
 
     def get_ceremony(self):
         return 'Golden Globes'
@@ -65,12 +70,13 @@ class GoldenGlobes(AwardCeremonyApp):
                 if len(matches) > 0:
                     for m in matches[0]:
                         if len(m)>1:
-                            presenter_counts[m] += 1
+                            if m.lower() not in self.stopwords:
+                                presenter_counts[m] += 1
         return presenter_counts.most_common(5)
 
 
-    def find_awards(self):
-        winners={}
+    def find_award_winners(self):
+        winners=[]
         award_hash={}
         for award in self.awards:
             award_hash[award]=Counter()
@@ -82,9 +88,7 @@ class GoldenGlobes(AwardCeremonyApp):
                     if noun not in ['goldenglobes']:
                         award_hash[classification][noun] += 1
         for award in self.awards:
-            counts = award_hash[award].most_common(100)
-            grouped = group_counts(counts)
-            winners[award] = grouped
+            winners.append(award_hash[award].most_common())
         return winners
 
     def get_true_name(self, messy_name):
