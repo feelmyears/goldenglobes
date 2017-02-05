@@ -4,6 +4,7 @@ from GoldenGlobesApp import GoldenGlobesApp
 from GoldenGlobesKB import GoldenGlobesKB
 from AwardClassifier import AwardClassifier
 from scorer import Scorer
+from nltk.corpus import stopwords as nltkstopwords
 
 def main():
     print 'main'
@@ -23,7 +24,8 @@ def main():
 
     # Initializing GoldenGlobesKB, Classifier, GoldenGlobesApp, and Scorer
     kb = GoldenGlobesKB()
-    classifier = AwardClassifier(kb.get_awards(), kb.get_stopwords())
+    stopwords = nltkstopwords.words('english')
+    classifier = AwardClassifier(kb.get_awards(), stopwords)
     app = GoldenGlobesApp(tweetDB, kb, classifier)
     s = Scorer(app)
 

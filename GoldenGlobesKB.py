@@ -1,5 +1,6 @@
 from AwardCeremony import AwardCeremonyKB
 from nltk.corpus import stopwords as nltkstopwords
+from nltk import word_tokenize
 
 class GoldenGlobesKB(AwardCeremonyKB):
     def get_awards_and_recipients(self):
@@ -37,7 +38,7 @@ class GoldenGlobesKB(AwardCeremonyKB):
         return [a[0] for a in self.get_awards_and_recipients()]
 
     def get_stopwords(self):
-        stopwords = [
+        stopwords = {
             'best',
             '-',
             'goldenglobes',
@@ -48,6 +49,12 @@ class GoldenGlobesKB(AwardCeremonyKB):
             'tv series',
             'tv',
             'series'
-        ]
-        stopwords.append(nltkstopwords.words('english'))
-        return stopwords
+        }
+
+        for a in self.get_awards():
+            tokens = word_tokenize(a)
+            lower_tokens = [tok.lower() for tok in tokens]
+            stopwords |= set(lower_tokens)
+
+        stopwords |= set(nltkstopwords.words('english'))
+        return list(stopwords)

@@ -1,4 +1,4 @@
-from AwardCeremony import AwardCeremonyApp
+from AwardCeremony import AwardCeremonyApp, AwardCeremonyKB
 import re
 from collections import Counter
 from textblob import TextBlob
@@ -13,18 +13,8 @@ class GoldenGlobesApp(AwardCeremonyApp):
 
         self.imdb = IMDb()
         self.present_counter = 0
-        self.ignored=[]
-        for award in self.awards:
-            for word in award.split():
-               self.ignored.append(word.lower())
-        self.ignored.append("goldenglobes")
-        self.ignored.append("movie")
-        self.ignored.append("rt")
-        self.ignored.append("performance")
-        self.ignored.append("congratulations")
-        self.ignored.append("tv series")
 
-    def get_name(self):
+    def get_ceremony(self):
         return 'Golden Globes'
 
     def get_host(self):
@@ -35,13 +25,20 @@ class GoldenGlobesApp(AwardCeremonyApp):
 
     def get_winners(self):
         winners = {}
-        for award, recipient in self.kb.get_awards():
-            winners[award] = None
+        predicted_winners = self.find_winners()
+        for award, recipient_type in self.kb.get_awards_and_recipients():
+            predicted = predicted_winners[award]
+            if recipient_type is AwardCeremonyKB.PERSON:
+                winners[award] = self.get_true_name(predicted)
+            elif recipient_type is AwardCeremonyKB.PRODUCTION:
+                winners[award] = self.get_true_title(predicted)
+            else:
+                winners[award] = predicted
         return winners
 
     def get_presenters(self):
         presenters = {}
-        for award, recipient in self.kb.get_awards():
+        for award in self.kb.get_awards():
             presenters[award] = None
         return presenters
 
@@ -65,45 +62,10 @@ class GoldenGlobesApp(AwardCeremonyApp):
         ml_host = grouped_hosts[0][0]
         return ml_host
 
-    def find_presenters(self):
-        presenters = []
-        presenter_pattern = ur'(@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*))? +(?:to +)?present'
-        present_detection = r'[Pp]resent'
-        p = re.compile(presenter_pattern)
-        presenter_counts = {}
-        unclassified_presenters = Counter()
-        for award, recipient in self.kb.get_awards():
-            presenter_counts[award] = Counter()
-        for t in self.tweetDB.tweets:
-            text = t.text
-            if re.search(present_detection, text):
-                matches = re.findall(p, text)
-                if len(matches) > 0:
-                    classification = self.classifier.classify_tweet(text)
-                    self.present_counter += 1
-                    for m in matches[0]:
-                        if len(m)>1:
-                            #if m.lower() not in self.stopwords:
-                            if classification != None:
-                                presenter_counts[classification][m] += 1
-                            else:
-                                unclassified_presenters[m] += 1
-        for award, recipient in self.kb.get_awards():
-            most_common = presenter_counts[award].most_common()
-            print most_common
-            new_most_common = Counter()
-            for key, value in most_common:
-                new_most_common[key] = value + unclassified_presenters[key]
-            presenters.append(new_most_common.most_common(5))
-        print unclassified_presenters
-        print self.present_counter
-        return presenters
-        
-
-    # New Version
     def find_winners(self):
         winners = {}
         award_hash = {}
+        stopwords = self.kb.get_stopwords()
         for award in self.get_awards():
             award_hash[award] = Counter()
         for tweet in self.tweetDB.tweets:
@@ -111,13 +73,14 @@ class GoldenGlobesApp(AwardCeremonyApp):
             if classification != None:
                 tweet = TextBlob(tweet.text)
                 for noun in tweet.noun_phrases:
-                    for ignoredWord in self.ignored:
-                        if noun.lower() not in ignoredWord and ignoredWord not in noun.lower():
+                    for stop in stopwords:
+                        if noun.lower() not in stop and stop not in noun.lower():
                             award_hash[classification][noun] += 1
         for award in self.get_awards():
             counts = award_hash[award].most_common(100)
-            grouped = group_counts(counts)
-            winners[award] = grouped[0:3]
+            print award
+            print '\t', counts
+            winners[award] = counts[0][0]
         return winners
 
     def get_true_name(self, messy_name):
