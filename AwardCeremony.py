@@ -56,3 +56,19 @@ class AwardCeremonyApp():
         Returns a list of tuples bonus items (bonus_item, result)
         """
         pass
+
+class AwardCeremonyScorer():
+    def __init__(self, app):
+        self.app = app
+
+    def score_app(self):
+        ceremony_name = self.app.get_ceremony()
+        host = self.app.get_host()
+        print 'Scoring app for {} award ceremony, hosted by {}'.format(ceremony_name, host)
+        awards = self.app.get_awards()
+        presenters = self.app.get_presenters()
+        winners = self.app.get_winners()
+        for a in awards:
+            print a
+            print '\tPresenter: {}'.format(presenters[a])
+            print '\tWinner:    {}'.format(winners[a])
