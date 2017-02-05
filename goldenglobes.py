@@ -78,7 +78,7 @@ class GoldenGlobes(AwardCeremonyApp):
                     if noun not in ['goldenglobes']:
                         award_hash[classification][noun] += 1
         for award in self.awards:
-            winners.append(award,(award_hash[award].most_common(10)))
+            winners.append((award,(award_hash[award].most_common(10))))
         return winners
 
 class AwardClassifier():
