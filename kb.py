@@ -1,3 +1,5 @@
+from AwardCeremony import AwardCeremonyKB
+
 MOTION_PICTURE_AWARDS = [
     'Best Motion Picture - Drama',
     'Best Motion Picture - Musical or Comedy',
@@ -29,16 +31,6 @@ TELEVISION_AWARDS = [
     'Best Supporting Actor in a Series, Limited Series or Motion Picture made for Television',
     'Best Supporting Actress in a Series, Limited Series or Motion Picture made for Television'
 ]
-
-
-class AwardCeremonyKB():
-    PERSON = 'PERSON'
-    PRODUCTION = 'PRODUCTION'
-    def get_awards(self):
-        pass
-
-    def get_stopwords(self):
-        pass
 
 class GoldenGlobesKB(AwardCeremonyKB):
     def get_awards(self):

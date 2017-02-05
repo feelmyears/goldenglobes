@@ -2,7 +2,7 @@ import re
 from collections import Counter
 from textblob import TextBlob
 from Levenshtein import distance
-from scorer import AwardCeremonyApp
+from AwardCeremony import AwardCeremonyApp
 from imdb import IMDb
 
 class GoldenGlobes(AwardCeremonyApp):
