@@ -47,8 +47,28 @@ class GoldenGlobes(AwardCeremonyApp):
 
     def get_bonuses(self):
         bonuses = {}
+        popular_mention = None
+        mention_popularity = 0
+        for m, tweets in self.tweetDB.mentions.items():
+            if m.lower() == 'goldenglobes':
+                continue
+            test_popularity = len(tweets)
+            if test_popularity > mention_popularity:
+                mention_popularity = test_popularity
+                popular_mention = m
+        popular_tag = None
+        tag_popularity = 0
+        for t, tweets in self.tweetDB.mentions.items():
+            if t.lower() == 'goldenglobes':
+                continue
+            test_popularity = len(tweets)
+            if test_popularity > tag_popularity:
+                tag_popularity = test_popularity
+                popular_tag = t
+        bonuses['most popular twitter #tag'] = popular_tag
+        bonuses['most popular twitter @mention'] = popular_mention
         # Example: bonuses['Best Dressed'] = 'Emma Stone'
-        pass
+        return bonuses
 
     def show_awards(self):
         for award in self.awards:
