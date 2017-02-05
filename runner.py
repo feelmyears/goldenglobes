@@ -18,7 +18,7 @@ def main():
     PARALLEL=False
     start_time=time.time()
     logging.info(" startup at time:" +str(start_time))
-    tweetDB = None
+    tweetDB = None 
 
     if USE_PICKLE:
         tweet_data = 'goldenglobesTweetDB'
