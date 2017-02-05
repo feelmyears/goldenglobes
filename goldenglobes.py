@@ -129,19 +129,20 @@ class AwardClassifier():
     def __init__(self, awards, stopwords, pred_thresh=1):
         self.awards = awards
         self.stopwords = stopwords
+        print stopwords
         self.pred_thresh = pred_thresh
         self.feature_vector = self.gen_feature_vector(stopwords)
-        self.feature_vector_set = self.gen_feature_vector_set(stopwords)
+        #self.feature_vector_set = self.gen_feature_vector_set(stopwords)
         self.award_feature_masks = self.gen_award_masks(self.feature_vector)
-        print self.awards
+        print self.award_feature_masks
 
-    def gen_feature_vector_set(self, stopwords):
-        vect_set = {}
-        for award in self.awards:
-            vect = TfidfVectorizer(analyzer='word', stop_words=stopwords, ngram_range=(1, 3))
-            vect.fit_transform([award])
-            vect_set[award] = vect
-        return vect_set
+    #def gen_feature_vector_set(self, stopwords):
+    #    vect_set = {}
+    #    for award in self.awards:
+    ##        vect = TfidfVectorizer(analyzer='word', stop_words=stopwords, ngram_range=(1, 3))
+    ##        vect.fit_transform([award])
+    #        vect_set[award] = vect
+     #   return vect_set
 
     def gen_feature_vector(self, stopwords):
         vect = TfidfVectorizer(analyzer='word', stop_words=stopwords, ngram_range=(1, 3))
@@ -163,13 +164,19 @@ class AwardClassifier():
 
     def classify_tweet(self, tweet_text):
         freqs = self.feature_vector.transform([tweet_text]).toarray()[0]
+        print tweet_text
+        print freqs
         features = self.feature_vector.get_feature_names()
+        print features
         counts = Counter()
         for a in self.awards:
             mask = self.award_feature_masks[a]
             masked_freqs = np.multiply(freqs, mask)
             counts[a] = np.sum(masked_freqs)
+            print mask
+            print masked_freqs
         predicted_award = counts.most_common(1)[0]
+        print predicted_award
         if predicted_award[1] > self.pred_thresh:
             return str(predicted_award[0])
         else:
