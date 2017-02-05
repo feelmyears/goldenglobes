@@ -150,11 +150,11 @@ def group_counts(counts, max_dist=10):
         for i in range(1, len(ungrouped)):
             try:
                 cmp_pattern, cmp_ct = ungrouped[i]
+                if should_group(pattern, cmp_pattern, max_dist):
+                    ct += cmp_ct
+                    new_group_indices.append(i)
             except ValueError:
                 pass
-            if should_group(pattern, cmp_pattern, max_dist):
-                ct += cmp_ct
-                new_group_indices.append(i)
         grouped.append((pattern, ct))
         ungrouped = [ungrouped[i] for i in range(len(ungrouped)) if i not in new_group_indices]
 
