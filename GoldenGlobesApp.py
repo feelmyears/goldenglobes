@@ -4,6 +4,7 @@ from collections import Counter
 from textblob import TextBlob
 from Levenshtein import distance
 from imdb import IMDb
+from nltk import word_tokenize
 
 class GoldenGlobesApp(AwardCeremonyApp):
     def __init__(self, tweetDB, kb, classifier):
@@ -106,23 +107,47 @@ class GoldenGlobesApp(AwardCeremonyApp):
         return ml_host
 
     def find_winners(self):
-        winners = {}
         award_hash = {}
         for award in self.get_awards():
             award_hash[award] = Counter()
+
         for tweet in self.tweetDB.tweets:
-            classification = self.classifier.classify_tweet(tweet.text)
+            tweet_text = tweet.text
+            classification = self.classifier.classify_tweet(tweet_text)
             if classification != None:
-                tweet = TextBlob(tweet.text)
-                for noun in tweet.noun_phrases:
-                    for ignoredWord in self.kb.get_stopwords():
-                        if noun.lower() not in ignoredWord and ignoredWord not in noun.lower():
-                            award_hash[classification][noun] += 1
-        for award in self.awards:
-            counts = award_hash[award].most_common(100)
-            grouped = group_counts(counts)
-            winners[award] = grouped[0:3]
-        return winners
+                tweet_blob = TextBlob(tweet_text)
+                for noun in tweet_blob.noun_phrases:
+                    award_hash[classification][noun] += 1
+
+        stopwords = {
+            'best',
+            '-',
+            'goldenglobes',
+            'movie',
+            'rt',
+            'performance',
+            'congratulations',
+            'tv series',
+            'tv',
+            'series'
+        }
+        for a in self.get_awards():
+            tokens = word_tokenize(a)
+            lower_tokens = [tok.lower() for tok in tokens]
+            stopwords |= set(lower_tokens)
+
+        filtered_winners = {}
+        for award in self.get_awards():
+            counts = award_hash[award].most_common(10)
+            filtered_winners[award] = None
+            # print award
+            # print counts
+            for noun, ct in counts:
+                if not re.search(noun, award, re.IGNORECASE) and noun not in stopwords:
+                    filtered_winners[award] = noun
+                    break
+
+        return filtered_winners
 
     def get_true_name(self, messy_name):
         results = self.imdb.search_person(messy_name)
