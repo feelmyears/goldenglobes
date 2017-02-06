@@ -108,7 +108,6 @@ class GoldenGlobesApp(AwardCeremonyApp):
     def find_winners(self):
         winners = {}
         award_hash = {}
-        stopwords = self.kb.get_stopwords()
         for award in self.get_awards():
             award_hash[award] = Counter()
         for tweet in self.tweetDB.tweets:
@@ -116,14 +115,13 @@ class GoldenGlobesApp(AwardCeremonyApp):
             if classification != None:
                 tweet = TextBlob(tweet.text)
                 for noun in tweet.noun_phrases:
-                    for stop in stopwords:
-                        if noun.lower() not in stop and stop not in noun.lower():
+                    for ignoredWord in self.kb.get_stopwords():
+                        if noun.lower() not in ignoredWord and ignoredWord not in noun.lower():
                             award_hash[classification][noun] += 1
-        for award in self.get_awards():
+        for award in self.awards:
             counts = award_hash[award].most_common(100)
-            print award
-            print '\t', counts
-            winners[award] = counts[0][0]
+            grouped = group_counts(counts)
+            winners[award] = grouped[0:3]
         return winners
 
     def get_true_name(self, messy_name):
