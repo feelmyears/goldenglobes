@@ -95,3 +95,9 @@ class AwardCeremonyScorer():
         print 'Award presenters and winnerd'
         print ''
         print 'Scored app in {} seconds'.format(total_time)
+
+        print 'Presenter and nominees for each award will be implemented in the next submission.'
+        print ''
+        print 'We also acknowledge that our current implementation is slower than we would like'
+        print 'and will work to optimize our implementation for the next submission to achieve'
+        print 'sub-minute runtime.'
