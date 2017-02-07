@@ -1,3 +1,5 @@
+import time
+
 class AwardCeremonyKB():
     PERSON = 'PERSON'
     PRODUCTION = 'PRODUCTION'
@@ -62,19 +64,34 @@ class AwardCeremonyScorer():
         self.app = app
 
     def score_app(self):
+        start_time = time.time()
         ceremony_name = self.app.get_ceremony()
         print 'Scoring app for {} award ceremony'.format(ceremony_name)
         host = self.app.get_host()
+
+        print ''
+        print 'Determining host...'
         print 'Host: {}'.format(host)
 
+        print ''
+        print 'Determining extras...'
         boneses = self.app.get_bonuses()
         for category, winner in boneses.iteritems():
             print '{}: {}'.format(category, winner)
 
+        print ''
+        print 'Determining award winners...'
         awards = self.app.get_awards()
-        # presenters = self.app.get_presenters()
         winners = self.app.get_winners()
+
         for a in awards:
             print a
-            # print '\tPresenter: {}'.format(presenters[a])
             print '\tWinner:    {}'.format(winners[a])
+
+        end_time = time.time()
+        total_time = end_time - start_time
+
+        print ''
+        print 'Award presenters and winnerd'
+        print ''
+        print 'Scored app in {} seconds'.format(total_time)

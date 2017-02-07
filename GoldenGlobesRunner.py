@@ -25,6 +25,7 @@ def main():
     stopwords = nltkstopwords.words('english')
     classifier = AwardClassifier(kb.get_awards(), stopwords)
     app = GoldenGlobesApp(tweetDB, kb, classifier)
+
     s = AwardCeremonyScorer(app)
 
     # Score App
