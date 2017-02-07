@@ -55,7 +55,7 @@ class GoldenGlobesApp(AwardCeremonyApp):
             if test_popularity > mention_popularity:
                 mention_popularity = test_popularity
                 popular_mention = m
-        bonuses['most popular twitter @mention'] = popular_mention
+        bonuses['Most Popular Twitter @mention'] = popular_mention
 
         popular_tag = None
         tag_popularity = 0
@@ -66,7 +66,7 @@ class GoldenGlobesApp(AwardCeremonyApp):
             if test_popularity > tag_popularity:
                 tag_popularity = test_popularity
                 popular_tag = t
-        bonuses['most popular twitter #tag'] = popular_tag
+        bonuses['Most Popular Twitter #tag'] = popular_tag
 
         stopwords.append('best')
         stopwords.append('dressed')
@@ -86,7 +86,7 @@ class GoldenGlobesApp(AwardCeremonyApp):
                         if m[0].lower() in stopwords:
                             continue
                         best_dressed_counts[m[0]] += 1
-        bonuses['best dressed'] = best_dressed_counts.most_common(1)[0][0]
+        bonuses['Best Dressed'] = best_dressed_counts.most_common(1)[0][0]
 
         # Example: bonuses['Best Dressed'] = 'Emma Stone'
         return bonuses

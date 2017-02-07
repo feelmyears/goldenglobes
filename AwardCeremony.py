@@ -63,12 +63,18 @@ class AwardCeremonyScorer():
 
     def score_app(self):
         ceremony_name = self.app.get_ceremony()
+        print 'Scoring app for {} award ceremony'.format(ceremony_name)
         host = self.app.get_host()
-        print 'Scoring app for {} award ceremony, hosted by {}'.format(ceremony_name, host)
+        print 'Host: {}'.format(host)
+
+        boneses = self.app.get_bonuses()
+        for category, winner in boneses.iteritems():
+            print '{}: {}'.format(category, winner)
+
         awards = self.app.get_awards()
-        presenters = self.app.get_presenters()
+        # presenters = self.app.get_presenters()
         winners = self.app.get_winners()
         for a in awards:
             print a
-            print '\tPresenter: {}'.format(presenters[a])
+            # print '\tPresenter: {}'.format(presenters[a])
             print '\tWinner:    {}'.format(winners[a])

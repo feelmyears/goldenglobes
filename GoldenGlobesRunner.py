@@ -3,12 +3,10 @@ from TweetDB import TweetDB
 from GoldenGlobesApp import GoldenGlobesApp
 from GoldenGlobesKB import GoldenGlobesKB
 from AwardClassifier import AwardClassifier
-from scorer import Scorer
+from AwardCeremony import AwardCeremonyScorer
 from nltk.corpus import stopwords as nltkstopwords
 
 def main():
-    print 'main'
-    USE_FULL_SET = True
     USE_PICKLE = True
 
     tweetDB = None
@@ -16,7 +14,7 @@ def main():
         tweet_data = 'goldenglobesTweetDB'
         tweetDB = utils.load(tweet_data)
     else:
-        tweet_data = 'goldenglobes.tab' if USE_FULL_SET else 'goldenglobes_mod.tab'
+        tweet_data = 'goldenglobes.tab'
         tweetDB = TweetDB()
         tweetDB.import_tweets(tweet_data)
         tweetDB.process_tweets()
@@ -27,7 +25,7 @@ def main():
     stopwords = nltkstopwords.words('english')
     classifier = AwardClassifier(kb.get_awards(), stopwords)
     app = GoldenGlobesApp(tweetDB, kb, classifier)
-    s = Scorer(app)
+    s = AwardCeremonyScorer(app)
 
     # Score App
     s.score_app()
