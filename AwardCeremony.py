@@ -92,10 +92,8 @@ class AwardCeremonyScorer():
         total_time = end_time - start_time
 
         print ''
-        print 'Award presenters and winnerd'
-        print ''
         print 'Scored app in {} seconds'.format(total_time)
-
+        print ''
         print 'Presenter and nominees for each award will be implemented in the next submission.'
         print ''
         print 'We also acknowledge that our current implementation is slower than we would like'
