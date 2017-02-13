@@ -66,6 +66,9 @@ class AwardCeremonyApp():
         """
         pass
 
+    def get_winners_and_presenters(self):
+        pass
+
 class AwardCeremonyScorer():
     def __init__(self, app):
         self.app = app
@@ -101,10 +104,9 @@ class AwardCeremonyScorer():
         print ''
         print 'Determining award winners and presenters...'
         awards = self.app.get_awards()
-        winners = self.app.get_winners()
-        presenters = self.app.get_presenters()
-        print presenters
-
+        # winners = self.app.get_winners()
+        # presenters = self.app.get_presenters()
+        winners, presenters = self.app.get_winners_and_presenters()
         for a in awards:
             print a
             print '\tWinner:    {}'.format(winners[a])

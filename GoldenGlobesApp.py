@@ -9,7 +9,13 @@ from multiprocessing import Pool
 
 def c_t(input):
     classifier, tweet = input
-    return (tweet, classifier.classify_tweet(tweet.text))
+    tweet_text = tweet.text
+    classification = classifier.classify_tweet(tweet_text)
+    noun_phrases = None
+    if classification is not None:
+        noun_phrases = TextBlob(tweet_text).noun_phrases
+
+    return (tweet, classification, noun_phrases)
 
 class GoldenGlobesApp(AwardCeremonyApp):
     def __init__(self, tweetDB, kb, classifier):
@@ -130,6 +136,26 @@ class GoldenGlobesApp(AwardCeremonyApp):
             else:
                 presenters[award] = ["Unable to determine a presenter"]
         return presenters
+
+    def get_winners_and_presenters(self):
+        predicted_winners, predicted_presenters = self.find_winners_and_presenters()
+        presenters = {}
+        winners = {}
+        for award, recipient_type in self.kb.get_awards_and_recipients():
+            award_winner = predicted_winners[award]
+            if recipient_type is AwardCeremonyKB.PERSON:
+                winners[award] = self.get_true_name(award_winner)
+            elif recipient_type is AwardCeremonyKB.PRODUCTION:
+                winners[award] = self.get_true_title(award_winner)
+            else:
+                winners[award] = award_winner
+
+            award_presenters = predicted_presenters[award]
+            if award_presenters is not None:
+                presenters[award] = [self.get_true_name(name) for name in award_presenters]
+            else:
+                presenters[award] = ["Unable to determine a presenter"]
+        return winners, presenters
 
     def get_bonuses(self):
         bonuses = {}
@@ -268,6 +294,71 @@ class GoldenGlobesApp(AwardCeremonyApp):
             filtered_presenters[award] = presenters if len(presenters) else None
 
         return filtered_presenters
+
+    def find_winners_and_presenters(self):
+        stopwords = {
+            'best',
+            '-',
+            'goldenglobes',
+            'movie',
+            'rt',
+            'performance',
+            'congratulations',
+            'tv series',
+            'tv',
+            'series'
+        }
+        for a in self.get_awards():
+            tokens = word_tokenize(a)
+            lower_tokens = [tok.lower() for tok in tokens]
+            stopwords |= set(lower_tokens)
+
+        presenter_pattern1 = ur'(@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*))? +(?:to +)?present'
+        presenter_pattern2 = ur'[Pp]resenter[s]? (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*))?'
+        p1 = re.compile(presenter_pattern1)
+        p2 = re.compile(presenter_pattern2)
+        patterns = [p1, p2]
+
+        presenter_counts = {}
+        winner_counts = {}
+        for award in self.get_awards():
+            presenter_counts[award] = Counter()
+            winner_counts[award] = Counter()
+
+        for tweet, classification, noun_phrases in self.tweet_classifications:
+            text = tweet.text
+            if classification != None:
+                for noun in noun_phrases:
+                    winner_counts[classification][noun] += 1
+
+                for pat in patterns:
+                    matches = re.findall(pat, text)
+                    if len(matches) > 0:
+                        for m in matches[0]:
+                            if len(m) > 1:
+                                presenter_counts[classification][m] += 1
+
+        filtered_presenters = {}
+        filtered_winners = {}
+        for award in self.get_awards():
+            counts = winner_counts[award].most_common(10)
+            filtered_winners[award] = None
+            # print award
+            # print counts
+            for noun, ct in counts:
+                if not re.search(noun, award, re.IGNORECASE) and noun not in stopwords:
+                    filtered_winners[award] = noun
+                    break
+
+            most_common = presenter_counts[award].most_common(100)
+            most_common_combined = group_counts(most_common)
+            top_3 = most_common_combined[:min(3, len(most_common_combined))]
+            presenters = [x[0] for x in top_3]
+
+            # print award, most_common_combined
+            filtered_presenters[award] = presenters if len(presenters) else None
+
+        return filtered_winners, filtered_presenters
 
     def get_true_name(self, messy_name):
         results = self.imdb.search_person(messy_name)
