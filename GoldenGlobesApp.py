@@ -24,6 +24,78 @@ class GoldenGlobesApp(AwardCeremonyApp):
     def get_awards(self):
         return self.kb.get_awards()
 
+    def get_nominees(self):
+        nominees = {}
+        unclassified_nominees = Counter()
+        stopwords = self.kb.get_stopwords()
+        nom_pattern = r'[Nn]ominees?,? (?P<name>[@#]\w+|[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)'
+        #ur'(@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*))? +'
+        counter = 0
+        p = re.compile(nom_pattern)
+        for award in self.kb.get_awards():
+            nominees[award] = Counter()
+        for t in self.tweetDB.tweets:
+            text = t.text
+            lower = text.lower()
+            match = re.search(p, text)
+            if match:
+                counter += 1
+                closest_noun = match.group('name')
+                if closest_noun.lower() in stopwords or closest_noun[1:].lower() in stopwords:
+                    continue
+
+
+                #nom_end = match.end()
+                #counter += 1
+                #text_blob = TextBlob(text)
+                #np = text_blob.noun_phrases
+                #m = t.mentions
+                #for noun in np:
+                #    if noun in stopwords:
+                #        np.remove(noun)
+                #for i in range(len(np)):
+                #   if np[i] in m:
+                #        np[i] = '@' + np[i][1:]
+
+                #closest_noun = None
+                #closest_distance = 10000000
+                #for noun in np:
+                #    noun_regex = re.compile(noun)
+                #    noun_match = re.search(noun_regex, lower)
+                #    if not noun_match:
+                #        print "something is wrong here"
+                #    else:
+                ##        dist = abs(noun_match.start() - nom_end)
+                #       if dist < closest_distance:
+                #            closest_distance = dist
+                #            closest_noun = noun
+
+                classification = self.classifier.classify_tweet(text)
+                if classification:
+                    nominees[classification][closest_noun] += 1
+                else:
+                    unclassified_nominees[closest_noun] += 1
+
+        print len(unclassified_nominees)
+        for key, counter in nominees.iteritems():
+            group_input = counter.most_common()
+            group_input.sort()
+            group_input.reverse()
+            nominees[key] = group_counts(group_input)
+        next_input = unclassified_nominees.most_common()
+        next_input.sort()
+        next_input.reverse()
+        unclassified_nominees = group_counts(next_input)
+        print len(unclassified_nominees)
+
+
+
+
+        print counter
+        print unclassified_nominees
+        print nominees
+        return nominees
+
     def get_winners(self):
         winners = {}
         predicted_winners = self.find_winners()

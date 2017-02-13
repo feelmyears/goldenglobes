@@ -59,6 +59,13 @@ class AwardCeremonyApp():
         """
         pass
 
+    def get_nominees(self):
+        """
+        Returns a dictionary of a list of nominees for each award in the form of 
+        award:[list of nominees]
+        """
+        pass
+
 class AwardCeremonyScorer():
     def __init__(self, app):
         self.app = app
@@ -68,6 +75,14 @@ class AwardCeremonyScorer():
         ceremony_name = self.app.get_ceremony()
         print 'Scoring app for {} award ceremony'.format(ceremony_name)
         host = self.app.get_host()
+
+        print ''
+        print 'Determining nominees...'
+        nominees = self.app.get_nominees()
+        for award, nominees in nominees.iteritems():
+            print award + ':'
+            for nom in nominees:
+                print nom
 
         print ''
         print 'Determining host...'
