@@ -81,15 +81,17 @@ class GoldenGlobesApp(AwardCeremonyApp):
             group_input = counter.most_common()
             group_input.sort()
             group_input.reverse()
-            nominees[key] = group_counts(group_input)
+            nominees[key] = dict(group_counts(group_input))
         next_input = unclassified_nominees.most_common()
         next_input.sort()
         next_input.reverse()
-        unclassified_nominees = group_counts(next_input)
+        unclassified_nominees = dict(group_counts(next_input))
         print len(unclassified_nominees)
 
-
-
+        for key, value in unclassified_nominees.iteritems():
+            for key2, value2 in nominees.iteritems():
+                if key in nominees[key2]:
+                    nominees[key2][key] += value
 
         print counter
         print unclassified_nominees
