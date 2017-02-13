@@ -5,6 +5,11 @@ from textblob import TextBlob
 from Levenshtein import distance
 from imdb import IMDb
 from nltk import word_tokenize
+from multiprocessing import Pool
+
+def c_t(input):
+    classifier, tweet = input
+    return (tweet, classifier.classify_tweet(tweet.text))
 
 class GoldenGlobesApp(AwardCeremonyApp):
     def __init__(self, tweetDB, kb, classifier):
@@ -12,6 +17,16 @@ class GoldenGlobesApp(AwardCeremonyApp):
         self.tweetDB = tweetDB
         self.classifier = classifier
         self.imdb = IMDb()
+
+        # Tuple of Tweet Classifications
+        self.tweet_classifications = []
+
+    def classify_tweets(self):
+        pool = Pool()
+        tweets = self.tweetDB.tweets
+        input = zip([self.classifier]*len(tweets), tweets)
+        result = pool.map(c_t, input)
+        self.tweet_classifications = result
 
     def get_ceremony(self):
         return 'Golden Globes'
@@ -85,8 +100,6 @@ class GoldenGlobesApp(AwardCeremonyApp):
         next_input.reverse()
         unclassified_nominees = group_counts(next_input)
         print len(unclassified_nominees)
-
-
 
 
         print counter
@@ -186,11 +199,10 @@ class GoldenGlobesApp(AwardCeremonyApp):
         for award in self.get_awards():
             award_hash[award] = Counter()
 
-        for tweet in self.tweetDB.tweets:
-            tweet_text = tweet.text
-            classification = self.classifier.classify_tweet(tweet_text)
+        for tweet, classification in self.tweet_classifications:
+            text = tweet.text
             if classification != None:
-                tweet_blob = TextBlob(tweet_text)
+                tweet_blob = TextBlob(text)
                 for noun in tweet_blob.noun_phrases:
                     award_hash[classification][noun] += 1
 
@@ -235,12 +247,11 @@ class GoldenGlobesApp(AwardCeremonyApp):
         for award in self.kb.get_awards():
             presenter_counts[award] = Counter()
 
-        for t in self.tweetDB.tweets:
-            text = t.text
+        for tweet, classification in self.tweet_classifications:
+            text = tweet.text
             for pat in patterns:
                 matches = re.findall(pat, text)
                 if len(matches) > 0:
-                    classification = self.classifier.classify_tweet(text)
                     for m in matches[0]:
                         if len(m) > 1:
                             if classification != None:
@@ -296,3 +307,4 @@ def group_counts(counts, max_dist=10):
 def should_group(pattern, cmp_pattern, max_dist):
     # return pattern in cmp_pattern or cmp_pattern in pattern or distance(pattern, cmp_pattern) <= max_dist
     return distance(pattern, cmp_pattern) <= max_dist
+

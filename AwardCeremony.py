@@ -74,6 +74,10 @@ class AwardCeremonyScorer():
         start_time = time.time()
         ceremony_name = self.app.get_ceremony()
         print 'Scoring app for {} award ceremony'.format(ceremony_name)
+
+        print 'Please wait while all tweets are classified... (this may take a while)'
+        self.app.classify_tweets()
+
         host = self.app.get_host()
 
         print ''
