@@ -74,6 +74,10 @@ class AwardCeremonyScorer():
         start_time = time.time()
         ceremony_name = self.app.get_ceremony()
         print 'Scoring app for {} award ceremony'.format(ceremony_name)
+
+        print 'Please wait while all tweets are classified... (this may take a while)'
+        self.app.classify_tweets()
+
         host = self.app.get_host()
 
         print ''
@@ -95,13 +99,17 @@ class AwardCeremonyScorer():
             print '{}: {}'.format(category, winner)
 
         print ''
-        print 'Determining award winners...'
+        print 'Determining award winners and presenters...'
         awards = self.app.get_awards()
         winners = self.app.get_winners()
+        presenters = self.app.get_presenters()
+        print presenters
 
         for a in awards:
             print a
             print '\tWinner:    {}'.format(winners[a])
+            presenter_string = ' and/or '.join(map(safe_string, presenters[a]))
+            print '\tPresenters: {}'.format(presenter_string)
 
         end_time = time.time()
         total_time = end_time - start_time
@@ -114,3 +122,7 @@ class AwardCeremonyScorer():
         print 'We also acknowledge that our current implementation is slower than we would like'
         print 'and will work to optimize our implementation for the next submission to achieve'
         print 'sub-minute runtime.'
+
+
+def safe_string(x):
+    return x.encode('ascii', 'ignore').decode('ascii') if x is not None else ''
