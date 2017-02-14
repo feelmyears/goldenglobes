@@ -42,6 +42,8 @@ class GoldenGlobesKB(AwardCeremonyKB):
             'best',
             '-',
             'goldenglobes',
+            '#goldenglobes',
+            '@goldenglobes',
             'movie',
             'rt',
             'performance',

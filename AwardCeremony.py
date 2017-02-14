@@ -76,7 +76,7 @@ class AwardCeremonyScorer():
         print 'Scoring app for {} award ceremony'.format(ceremony_name)
 
         print 'Please wait while all tweets are classified... (this may take a while)'
-        self.app.classify_tweets()
+        #self.app.classify_tweets()
 
         host = self.app.get_host()
 

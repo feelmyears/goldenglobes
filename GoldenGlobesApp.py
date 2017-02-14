@@ -39,52 +39,73 @@ class GoldenGlobesApp(AwardCeremonyApp):
 
     def get_nominees(self):
         nominees = {}
+        counter = 0
         unclassified_nominees = Counter()
         stopwords = self.kb.get_stopwords()
-        nom_pattern = r'[Nn]ominees?,? (?P<name>[@#]\w+|[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)'
-        #ur'(@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*))? +'
-        counter = 0
-        p = re.compile(nom_pattern)
-        gen_pattern = r'[Nn]ominee'
+        stopwords.append('nominee')
+        stopwords.append('nominees')
+        stopwords.append('nominated')
+        nom_pattern_beg = r'[Nn]ominees?,? (?P<name>[@#]\w+|[A-Z][a-z-]+ (?:(?:[a-z]+ ){0,2}[A-Z][a-z-]+ )*)'
+        nom_pattern_end = r'(?P<name>[@#]\w+|[A-Z][a-z-]+ (?:(?:[a-z]+ ){0,2}[A-Z][a-z-]+ )*) (?:lose|should|doesn|win)'
+        p_beg = re.compile(nom_pattern_beg)
+        p_end = re.compile(nom_pattern_end)
+        gen_pattern = r'[Nn]omin(?:ee|ate)'
+        gen_p = re.compile(gen_pattern)
         for award in self.kb.get_awards():
             nominees[award] = Counter()
         for t in self.tweetDB.tweets:
             text = t.text
-            lower = text.lower()
-            match = re.search(p, text)
+            #lower = text.lower()
+            match_beg = re.search(p_beg, text)
+            match_end = re.search(p_end, text)
             general_match = re.search(gen_p, text)
+            match = match_beg
+            if not match:
+                match = match_end
+            closest_noun = None
             if match:
                 counter += 1
                 closest_noun = match.group('name')
-                if closest_noun.lower() in stopwords or closest_noun[1:].lower() in stopwords:
+                tokens = closest_noun.lower().split(' ')
+                for token in tokens:
+                    if token in stopwords:
+                        continue
+
+            elif general_match:
+                name_pattern = r'(?:[@#]\w+|[A-Z][a-z-]+ (?:(?:[a-z]{1,3} ){0,2}[A-Z][a-z-]+ )*)'
+                nom_end = general_match.end()
+                counter += 1
+                np = re.findall(name_pattern, text)
+                remove_nouns = []
+                for noun in np:
+                    tokens = noun.lower().split(' ')
+                    for token in tokens:
+                        if token in stopwords:
+                            remove_nouns.append(noun)
+                            break
+
+                for noun in remove_nouns:
+                    np.remove(noun)
+                if np == []:
                     continue
+                closest_noun = None
+                closest_distance = 10000000
+                for noun in np:
+                    noun_regex = re.compile(noun)
+                    noun_match = re.search(noun_regex, text)
+                    if not noun_match:
+                        print "something is wrong here"
+                    else:
+                        dist = abs(noun_match.start() - nom_end)
+                        if text[noun_match.start()-1] == '.' or text[noun_match.start()-2] == '.':
+                            continue
+                        if dist < closest_distance:
+                            closest_distance = dist
+                            closest_noun = noun
+            else:
+                continue
 
-
-                #nom_end = match.end()
-                #counter += 1
-                #text_blob = TextBlob(text)
-                #np = text_blob.noun_phrases
-                #m = t.mentions
-                #for noun in np:
-                #    if noun in stopwords:
-                #        np.remove(noun)
-                #for i in range(len(np)):
-                #   if np[i] in m:
-                #        np[i] = '@' + np[i][1:]
-
-                #closest_noun = None
-                #closest_distance = 10000000
-                #for noun in np:
-                #    noun_regex = re.compile(noun)
-                #    noun_match = re.search(noun_regex, lower)
-                #    if not noun_match:
-                #        print "something is wrong here"
-                #    else:
-                ##        dist = abs(noun_match.start() - nom_end)
-                #       if dist < closest_distance:
-                #            closest_distance = dist
-                #            closest_noun = noun
-
+            if closest_noun != None:
                 classification = self.classifier.classify_tweet(text)
                 if classification:
                     nominees[classification][closest_noun] += 1
@@ -92,25 +113,42 @@ class GoldenGlobesApp(AwardCeremonyApp):
                     unclassified_nominees[closest_noun] += 1
 
         print len(unclassified_nominees)
-        for key, counter in nominees.iteritems():
-            group_input = counter.most_common()
+        for key, value in nominees.iteritems():
+            group_input = value.most_common()
             group_input.sort()
             group_input.reverse()
             nominees[key] = dict(group_counts(group_input))
+            nominees[key] = Counter(nominees[key])
         next_input = unclassified_nominees.most_common()
         next_input.sort()
         next_input.reverse()
         unclassified_nominees = dict(group_counts(next_input))
         print len(unclassified_nominees)
 
+        delete_keys = []
         for key, value in unclassified_nominees.iteritems():
             for key2, value2 in nominees.iteritems():
                 if key in nominees[key2]:
                     nominees[key2][key] += value
-        print counter
+                    if key not in delete_keys:
+                        delete_keys.append(key)
+        for key in delete_keys:
+            if key in unclassified_nominees:
+                del unclassified_nominees[key]
+        print len(unclassified_nominees)
+
+        #print counter
         print unclassified_nominees
-        print nominees
-        return nominees
+        #print nominees
+        nominee_dict = {}
+        for key, value in nominees.iteritems():
+            nominee_dict[key] = []
+            tuples = value.most_common()
+            for tup in tuples:
+                if len(tup[0]) > 3:
+                    nominee_dict[key].append(tup[0])
+        print nominee_dict
+        return nominee_dict
 
     def get_winners(self):
         winners = {}
