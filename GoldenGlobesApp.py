@@ -367,6 +367,7 @@ class GoldenGlobesApp(AwardCeremonyApp):
 
             most_common = presenter_counts[award].most_common()
             most_common_combined = group_counts(most_common)
+            # most_common_combined = most_common
             top_3 = most_common_combined[:min(3, len(most_common_combined))]
             presenters = [x[0] for x in top_3]
 
@@ -398,7 +399,7 @@ class GoldenGlobesApp(AwardCeremonyApp):
         else:
             return None
 
-def group_counts(counts, max_dist=15):
+def group_counts(counts, max_dist=5):
     ungrouped = counts
     grouped = []
     while len(ungrouped):
