@@ -387,7 +387,7 @@ class GoldenGlobesApp(AwardCeremonyApp):
         if results:
             return results[0]['name']
         else:
-            return None
+            return messy_name
 
     def get_true_title(self, messy_title):
         tv_producers = ['netflix', 'Netflix', 'hulu', 'Hulu']
@@ -402,7 +402,7 @@ class GoldenGlobesApp(AwardCeremonyApp):
         if results:
             return results[0]['title']
         else:
-            return None
+            return messy_title
 
 def group_counts(counts, max_dist=5):
     ungrouped = counts
