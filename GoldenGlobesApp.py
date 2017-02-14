@@ -51,9 +51,9 @@ class GoldenGlobesApp(AwardCeremonyApp):
         return self.network_call_time
 
     def get_nominees(self):
-        classification_hash = {}
-        for tweet, classif, nouns in self.tweet_classifications:
-            classification_hash[tweet] = classif
+        #classification_hash = {}
+        #for tweet, classif, nouns in self.tweet_classifications:
+        #    classification_hash[tweet] = classif
 
 
         nominees = {}
@@ -161,36 +161,35 @@ class GoldenGlobesApp(AwardCeremonyApp):
         nominee_dict = {}
         for key, value in nominees.iteritems():
             nominee_dict[key] = []
-            tuples = value.most_common()
+            tuples = value.most_common(6)
             for tup in tuples:
                 if len(tup[0]) > 3:
                     nominee_dict[key].append(tup[0])
 
-        true_nominees = {}
+        #true_nominees = {}
         #predicted_winners = self.find_winners()
-        for award, recipient_type in self.kb.get_awards_and_recipients():
-            true_nominees[award] = []
-            predicted = nominee_dict[award]
-            for nom in predicted:
-                if recipient_type is AwardCeremonyKB.PERSON:
-                    true_name = self.get_true_name(nom)
-                    if true_name is not None:
-                        true_nominees[award].append(true_name)
-                    else:
-                        continue
-                elif recipient_type is AwardCeremonyKB.PRODUCTION:
-                    true_title = self.get_true_title(nom)
-                    if true_title is not None:
-                        true_nominees[award].append(true_title)
-                    else:
-                        continue
-                else:
-                    true_nominees[award] = nom
-                if len(true_nominees[award]) == 6:
-                    break
+        #for award, recipient_type in self.kb.get_awards_and_recipients():
+            #true_nominees[award] = []
+            #predicted = nominee_dict[award]
+            #for nom in predicted:
+                #if recipient_type is AwardCeremonyKB.PERSON:
+                #    true_name = self.get_true_name(nom)
+                #    if true_name is not None and true_name not in true_nominees[award]:
+                 #       true_nominees[award].append(true_name)
+                 #   else:
+                 #       continue
+                #elif recipient_type is AwardCeremonyKB.PRODUCTION:
+                #    true_title = self.get_true_title(nom)
+                #    if true_title is not None and true_title not in true_nominees[award]:
+                #        true_nominees[award].append(true_title)
+                #    else:
+                #        continue
+                #else:
+                 #   true_nominees[award] = nom
+                #if len(true_nominees[award]) == 6:
+                 #   break
 
-        return true_nominees
-
+        return nominee_dict
     def get_winners(self):
         winners = {}
         predicted_winners = self.find_winners()
