@@ -51,6 +51,11 @@ class GoldenGlobesApp(AwardCeremonyApp):
         return self.network_call_time
 
     def get_nominees(self):
+        classification_hash = {}
+        for tweet, classif, nouns in self.tweet_classifications:
+            classification_hash[tweet] = classif
+
+
         nominees = {}
         counter = 0
         unclassified_nominees = Counter()
@@ -151,7 +156,7 @@ class GoldenGlobesApp(AwardCeremonyApp):
         print len(unclassified_nominees)
 
         #print counter
-        print unclassified_nominees
+        #print unclassified_nominees
         #print nominees
         nominee_dict = {}
         for key, value in nominees.iteritems():
@@ -160,8 +165,31 @@ class GoldenGlobesApp(AwardCeremonyApp):
             for tup in tuples:
                 if len(tup[0]) > 3:
                     nominee_dict[key].append(tup[0])
-        print nominee_dict
-        return nominee_dict
+
+        true_nominees = {}
+        #predicted_winners = self.find_winners()
+        for award, recipient_type in self.kb.get_awards_and_recipients():
+            true_nominees[award] = []
+            predicted = nominee_dict[award]
+            for nom in predicted:
+                if recipient_type is AwardCeremonyKB.PERSON:
+                    true_name = self.get_true_name(nom)
+                    if true_name is not None:
+                        true_nominees[award].append(true_name)
+                    else:
+                        continue
+                elif recipient_type is AwardCeremonyKB.PRODUCTION:
+                    true_title = self.get_true_title(nom)
+                    if true_title is not None:
+                        true_nominees[award].append(true_title)
+                    else:
+                        continue
+                else:
+                    true_nominees[award] = nom
+                if len(true_nominees[award]) == 6:
+                    break
+
+        return true_nominees
 
     def get_winners(self):
         winners = {}
