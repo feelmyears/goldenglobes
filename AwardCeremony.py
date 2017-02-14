@@ -81,13 +81,13 @@ class AwardCeremonyScorer():
 
         host = self.app.get_host()
 
-        print ''
-        print 'Determining nominees...'
-        nominees = self.app.get_nominees()
-        for award, nominees in nominees.iteritems():
-            print award + ':'
-            for nom in nominees:
-                print nom
+        # print ''
+        # print 'Determining nominees...'
+        # nominees = self.app.get_nominees()
+        # for award, nominees in nominees.iteritems():
+        #     print award + ':'
+        #     for nom in nominees:
+        #         print nom
 
         print ''
         print 'Determining host...'
@@ -100,16 +100,20 @@ class AwardCeremonyScorer():
             print '{}: {}'.format(category, winner)
 
         print ''
-        print 'Determining award winners and presenters... (grab some popcorn, this may take a while)'
+        print 'Determining award winners, presenters, and nominees... (grab some popcorn, this may take a while)'
         awards = self.app.get_awards()
         # winners = self.app.get_winners()
         # presenters = self.app.get_presenters()
+        nominees = self.app.get_nominees()
         winners, presenters = self.app.get_winners_and_presenters()
         for a in awards:
             print a
             print '\tWinner:     {}'.format(winners[a])
             presenter_string = ' and/or '.join(map(safe_string, presenters[a]))
             print '\tPresenters: {}'.format(presenter_string)
+            nominee_string = ' and/or '.join(map(safe_string, nominees[a]))
+            print '\tNominees:   {}'.format(nominee_string)
+
 
         end_time = time.time()
         total_time = end_time - start_time
