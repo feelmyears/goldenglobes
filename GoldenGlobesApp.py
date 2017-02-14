@@ -279,9 +279,11 @@ class GoldenGlobesApp(AwardCeremonyApp):
     def find_presenters(self):
         presenter_pattern1 = ur'(@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*))? +(?:to +)?present'
         presenter_pattern2 = ur'[Pp]resenter[s]? (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*))?'
+        presenter_pattern3 = ur'([A-Z][a-z]+(?: [A-Z][a-z]+)+)'
         p1 = re.compile(presenter_pattern1)
         p2 = re.compile(presenter_pattern2)
-        patterns = [p1, p2]
+        p3 = re.compile(presenter_pattern3)
+        patterns = [p1, p2, p3]
 
         presenter_counts = {}
         for award in self.kb.get_awards():
@@ -327,8 +329,8 @@ class GoldenGlobesApp(AwardCeremonyApp):
             lower_tokens = [tok.lower() for tok in tokens]
             stopwords |= set(lower_tokens)
 
-        presenter_pattern1 = ur'(@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*))? +(?:to +)?present'
-        presenter_pattern2 = ur'[Pp]resenter[s]? (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*))?'
+        presenter_pattern1 = ur'([A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and ([A-Z][a-z]+(?: ?[A-Z][a-z]+)*))?\s?\w+\s?[Pp]resent'
+        presenter_pattern2 = ur'[Pp]resenter[s]? ([A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*))?'
 
         p1 = re.compile(presenter_pattern1)
         p2 = re.compile(presenter_pattern2)
@@ -390,6 +392,7 @@ class GoldenGlobesApp(AwardCeremonyApp):
         results = self.imdb.search_movie(messy_title)
         end_time = time.time()
         tot_time = end_time - start_time
+        self.network_call_time += tot_time
         if results:
             return results[0]['title']
         else:
@@ -417,6 +420,5 @@ def group_counts(counts, max_dist=15):
 
 
 def should_group(pattern, cmp_pattern, max_dist):
-    # return pattern in cmp_pattern or cmp_pattern in pattern or distance(pattern, cmp_pattern) <= max_dist
     return distance(pattern, cmp_pattern) <= max_dist
 
