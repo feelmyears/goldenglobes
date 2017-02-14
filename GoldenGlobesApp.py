@@ -149,13 +149,14 @@ class GoldenGlobesApp(AwardCeremonyApp):
         presenters = {}
         winners = {}
 
-
         for award, recipient_type in self.kb.get_awards_and_recipients():
             award_winner = predicted_winners[award]
             if recipient_type is AwardCeremonyKB.PERSON:
-                winners[award] = self.get_true_name(award_winner)
+                true_name = self.get_true_name(award_winner)
+                winners[award] = true_name if true_name is not None else award_winner
             elif recipient_type is AwardCeremonyKB.PRODUCTION:
-                winners[award] = self.get_true_title(award_winner)
+                true_title = self.get_true_title(award_winner)
+                winners[award] = true_title if true_title is not None else award_winner
             else:
                 winners[award] = award_winner
 
@@ -389,6 +390,10 @@ class GoldenGlobesApp(AwardCeremonyApp):
             return None
 
     def get_true_title(self, messy_title):
+        tv_producers = ['netflix', 'Netflix', 'hulu', 'Hulu']
+        for tv in tv_producers:
+            messy_title = messy_title.replace(tv, '')
+
         start_time = time.time()
         results = self.imdb.search_movie(messy_title)
         end_time = time.time()
