@@ -41,15 +41,9 @@ class AwardCeremonyApp():
         """
         pass
 
-    def get_winners(self):
+    def get_winners_and_presenters(self):
         """
-        Returns a dictionary of winners for each award in the form award:winner
-        """
-        pass
-
-    def get_presenters(self):
-        """
-        Returns a dictionary of presenters for each award in the form award:presenter
+        Returns a tuple of dictionarys of winners presenters for each award in the form (award:winner, award:presenter)
         """
         pass
 
@@ -66,8 +60,10 @@ class AwardCeremonyApp():
         """
         pass
 
-    def get_winners_and_presenters(self):
-        pass
+    def get_network_call_time(self):
+        """
+        Returns the amount of time spent in network calls
+        """
 
 class AwardCeremonyScorer():
     def __init__(self, app):
@@ -76,9 +72,9 @@ class AwardCeremonyScorer():
     def score_app(self):
         start_time = time.time()
         ceremony_name = self.app.get_ceremony()
-        print 'Scoring app for {} award ceremony'.format(ceremony_name)
-
-        print 'Please wait while all tweets are classified... (this may take a while)'
+        print 'App for {} award ceremony | Created by Philip Meyers IV, Yulun Wu, and Keith Kravis'.format(ceremony_name)
+        print ''
+        print 'Please wait while all tweets are classified...'
         self.app.classify_tweets()
 
         host = self.app.get_host()
@@ -102,29 +98,27 @@ class AwardCeremonyScorer():
             print '{}: {}'.format(category, winner)
 
         print ''
-        print 'Determining award winners and presenters...'
+        print 'Determining award winners and presenters... (grab some popcorn, this may take a while)'
         awards = self.app.get_awards()
         # winners = self.app.get_winners()
         # presenters = self.app.get_presenters()
         winners, presenters = self.app.get_winners_and_presenters()
         for a in awards:
             print a
-            print '\tWinner:    {}'.format(winners[a])
+            print '\tWinner:     {}'.format(winners[a])
             presenter_string = ' and/or '.join(map(safe_string, presenters[a]))
             print '\tPresenters: {}'.format(presenter_string)
 
         end_time = time.time()
         total_time = end_time - start_time
+        network_time = self.app.get_network_call_time()
 
         print ''
-        print 'Scored app in {} seconds'.format(total_time)
+        print 'Total runtime:      {} seconds'.format(total_time)
+        print 'Network calls time: {} seconds'.format(network_time)
+        print 'Local runtime:      {} seconds'.format(total_time - network_time)
         print ''
-        print 'Presenter and nominees for each award will be implemented in the next submission.'
-        print ''
-        print 'We also acknowledge that our current implementation is slower than we would like'
-        print 'and will work to optimize our implementation for the next submission to achieve'
-        print 'sub-minute runtime.'
-
+        print 'Thanks for using and have a great day!'
 
 def safe_string(x):
     return x.encode('ascii', 'ignore').decode('ascii') if x is not None else ''

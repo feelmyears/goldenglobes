@@ -6,6 +6,7 @@ from Levenshtein import distance
 from imdb import IMDb
 from nltk import word_tokenize
 from multiprocessing import Pool
+import time
 
 def c_t(input):
     classifier, tweet = input
@@ -24,7 +25,10 @@ class GoldenGlobesApp(AwardCeremonyApp):
         self.classifier = classifier
         self.imdb = IMDb()
 
-        # Tuple of Tweet Classifications
+        self.network_call_time = 0
+
+        # Tuple of Tweet Classifications in the form of (tweet, classification (None or award),
+        # and noun_phrases (None if classification is None)
         self.tweet_classifications = []
 
     def classify_tweets(self):
@@ -42,6 +46,9 @@ class GoldenGlobesApp(AwardCeremonyApp):
 
     def get_awards(self):
         return self.kb.get_awards()
+
+    def get_network_call_time(self):
+        return self.network_call_time
 
     def get_nominees(self):
         nominees = {}
@@ -141,6 +148,8 @@ class GoldenGlobesApp(AwardCeremonyApp):
         predicted_winners, predicted_presenters = self.find_winners_and_presenters()
         presenters = {}
         winners = {}
+
+
         for award, recipient_type in self.kb.get_awards_and_recipients():
             award_winner = predicted_winners[award]
             if recipient_type is AwardCeremonyKB.PERSON:
@@ -151,10 +160,15 @@ class GoldenGlobesApp(AwardCeremonyApp):
                 winners[award] = award_winner
 
             award_presenters = predicted_presenters[award]
+            unable_message = ["Unable to determine a presenter"]
             if award_presenters is not None:
-                presenters[award] = [self.get_true_name(name) for name in award_presenters]
+                true_names = [self.get_true_name(name) for name in award_presenters]
+                true_names_filtered = [t for t in true_names if t is not None and len(t) > 1]
+                presenters[award] = true_names_filtered if len(true_names_filtered) else unable_message
             else:
-                presenters[award] = ["Unable to determine a presenter"]
+                presenters[award] = unable_message
+
+
         return winners, presenters
 
     def get_bonuses(self):
@@ -315,6 +329,7 @@ class GoldenGlobesApp(AwardCeremonyApp):
 
         presenter_pattern1 = ur'(@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*))? +(?:to +)?present'
         presenter_pattern2 = ur'[Pp]resenter[s]? (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*)(?: and (@?[A-Z][a-z]+(?: ?[A-Z][a-z]+)*))?'
+
         p1 = re.compile(presenter_pattern1)
         p2 = re.compile(presenter_pattern2)
         patterns = [p1, p2]
@@ -343,38 +358,44 @@ class GoldenGlobesApp(AwardCeremonyApp):
         for award in self.get_awards():
             counts = winner_counts[award].most_common(10)
             filtered_winners[award] = None
-            # print award
-            # print counts
             for noun, ct in counts:
                 if not re.search(noun, award, re.IGNORECASE) and noun not in stopwords:
                     filtered_winners[award] = noun
                     break
 
-            most_common = presenter_counts[award].most_common(100)
+            most_common = presenter_counts[award].most_common()
             most_common_combined = group_counts(most_common)
             top_3 = most_common_combined[:min(3, len(most_common_combined))]
             presenters = [x[0] for x in top_3]
 
             # print award, most_common_combined
-            filtered_presenters[award] = presenters if len(presenters) else None
+            possible_presenters = [p for p in presenters if len(p) > 3]
+            filtered_presenters[award] = possible_presenters if len(presenters) else None
 
         return filtered_winners, filtered_presenters
 
     def get_true_name(self, messy_name):
+        start_time = time.time()
         results = self.imdb.search_person(messy_name)
+        end_time = time.time()
+        tot_time = end_time - start_time
+        self.network_call_time += tot_time
         if results:
             return results[0]['name']
         else:
             return None
 
     def get_true_title(self, messy_title):
+        start_time = time.time()
         results = self.imdb.search_movie(messy_title)
+        end_time = time.time()
+        tot_time = end_time - start_time
         if results:
             return results[0]['title']
         else:
             return None
 
-def group_counts(counts, max_dist=10):
+def group_counts(counts, max_dist=15):
     ungrouped = counts
     grouped = []
     while len(ungrouped):
